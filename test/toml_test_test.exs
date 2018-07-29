@@ -33,7 +33,7 @@ defmodule Toml.Test.TomlTestTests do
           err in [ExUnit.AssertionError] ->
             # Dump the TOML for better test failure context
             msg = err.message <> "\nExpected the following TOML to be considered valid:\n\n---\n#{File.read!(@toml_test_path)}\n---"
-            reraise %ExUnit.AssertionError{err | message: msg}, __STACKTRACE__
+            reraise %ExUnit.AssertionError{err | message: msg}, System.stacktrace()
         end
       end
     # And eval it in the module environment, resulting in a test as if it was defined by hand
@@ -55,7 +55,7 @@ defmodule Toml.Test.TomlTestTests do
         rescue
           err in [ExUnit.AssertionError] ->
             msg = err.message <> "\n\nExpected the following TOML to be considered invalid:\n\n---\n#{File.read!(@toml_test_path)}\n---"
-            reraise %ExUnit.AssertionError{err | message: msg}, __STACKTRACE__
+            reraise %ExUnit.AssertionError{err | message: msg}, System.stacktrace()
         end
       end
     Module.eval_quoted(%Macro.Env{__ENV__ | line: line}, quoted)
