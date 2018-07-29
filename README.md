@@ -125,6 +125,7 @@ iex> input = """
 server = "192.168.1.1"
 """
 ...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.parse(input)
+...> {:ok, %{database: %{server: "192.168.1.1"}}} = Toml.parse(input, keys: :atom)
 ...> stream = File.stream!("example.toml")
 ...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.parse_stream(stream)
 ...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.parse_file("example.toml")
@@ -192,9 +193,9 @@ format = "[$level] $message \n"
 
 ## Roadmap
 
-- [ ] Add benchmarking suite
+- [x] Add benchmarking suite
+- [x] Provide options for converting keys to atom, similar to Jason/Poison/etc.
 - [ ] Optimize lexer to always send offsets to parser, rather than only in some cases
-- [ ] Provide options for converting keys to atom, similar to Jason/Poison/etc.
 - [ ] Try to find pathological TOML files to test
 
 ## License

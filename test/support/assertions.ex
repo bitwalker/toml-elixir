@@ -14,7 +14,7 @@ defmodule Toml.Test.Assertions do
   """
   def assert_toml_valid(path) do
     json = Path.join([Path.dirname(path), Path.basename(path, ".toml") <> ".json"])
-    case Toml.Parser.parse_file(path) do
+    case Toml.parse_file(path) do
       {:error, {:invalid_toml, reason}} when is_binary(reason) ->
         flunk(reason)
       {:ok, parsed} ->

@@ -120,6 +120,6 @@ defmodule Toml.Test do
   end
   
   defp parse(str) when is_binary(str) do
-    Toml.Parser.parse(str)
+    Toml.parse(str)
   end
 end

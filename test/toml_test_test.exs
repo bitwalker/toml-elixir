@@ -51,7 +51,7 @@ defmodule Toml.Test.TomlTestTests do
         @tag toml_test: @toml_test
         @tag toml_test_type: :invalid
         test "#{@toml_test} is invalid" do
-          assert {:error, {:invalid_toml, _}} = Toml.Parser.parse_file(@toml_test_path)
+          assert {:error, {:invalid_toml, _}} = Toml.parse_file(@toml_test_path)
         rescue
           err in [ExUnit.AssertionError] ->
             msg = err.message <> "\n\nExpected the following TOML to be considered invalid:\n\n---\n#{File.read!(@toml_test_path)}\n---"

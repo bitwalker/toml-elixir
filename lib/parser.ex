@@ -9,18 +9,14 @@ defmodule Toml.Parser do
                     iodata_to_str: 1, iodata_to_integer: 1, iodata_to_float: 1]
   
   @doc """
-  Parses the given binary as TOML.
-  
-  You can provide an optional filename for error messages, "nofile" is used by default.
-  
-  Returns the parsed content as a map, wrapped in an :ok tuple.
+  Parses a raw binary
   """
-  @spec parse(binary) :: {:ok, map} | {:error, term}
-  @spec parse(binary, String.t) :: {:ok, map} | {:error, term}
-  def parse(bin, filename \\ "nofile") when is_binary(bin) do
+  @spec parse(binary, Toml.opts) :: {:ok, map} | {:error, term}
+  def parse(bin, opts) when is_binary(bin) and is_list(opts) do
+    filename = Keyword.get(opts, :filename, "nofile")
     {:ok, lexer} = Lexer.new(bin)
     try do
-      with {:ok, %Document{} = doc} <- do_parse(lexer, bin, Document.new()) do
+      with {:ok, %Document{} = doc} <- do_parse(lexer, bin, Document.new(opts)) do
         Document.to_map(doc)
       else
         {:error, reason, skip, lines} ->
@@ -37,19 +33,15 @@ defmodule Toml.Parser do
   end
 
   @doc """
-  Parses the given stream as TOML.
-  
-  You can provide an optional filename for error messages, "nofile" is used by default.
-  
-  Returns the parsed content as a map, wrapped in an :ok tuple.
+  Parses a stream
   """
-  @spec parse_stream(Enumerable.t) :: {:ok, map} | {:error, term}
-  @spec parse_stream(Enumerable.t, String.t) :: {:ok, map} | {:error, term}
-  def parse_stream(stream, filename \\ "nofile") do
+  @spec parse_stream(Enumerable.t, Toml.opts) :: {:ok, map} | {:error, term}
+  def parse_stream(stream, opts) do
+    filename = Keyword.get(opts, :filename, "nofile")
     bin = Enum.into(stream, <<>>)
     {:ok, lexer} = Lexer.new(bin)
     try do
-      with {:ok, %Document{} = doc} <- do_parse(lexer, bin, Document.new()) do
+      with {:ok, %Document{} = doc} <- do_parse(lexer, bin, Document.new(opts)) do
         Document.to_map(doc)
       else
         {:error, reason, skip, lines} ->
@@ -67,14 +59,19 @@ defmodule Toml.Parser do
   end
   
   @doc """
-  Parses the given file as TOML.
-  
-  Returns the parsed content as a map, wrapped in an :ok tuple.
+  Parses a file
   """
-  @spec parse_file(String.t) :: {:ok, map} | {:error, term}
-  def parse_file(path) when is_binary(path) do
+  @spec parse_file(String.t, Toml.opts) :: {:ok, map} | {:error, term}
+  def parse_file(path, opts) when is_binary(path) do
+    opts =
+      case Keyword.get(opts, :filename) do
+        nil ->
+          Keyword.put(opts, :filename, path)
+        _ ->
+          opts
+      end
     with {:ok, bin} <- File.read(path),
-         {:ok, _} = result <- parse(bin, path) do
+         {:ok, _} = result <- parse(bin, opts) do
       result
     end
   end

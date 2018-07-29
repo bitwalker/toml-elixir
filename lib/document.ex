@@ -6,41 +6,73 @@ defmodule Toml.Document do
   # the parser, and validating the mutations of the document. All operations
   # either return a valid document or an error.
 
-  defstruct [:keys, :comments, :open_table, :comment_stack]
+  defstruct [:keys, :comments, :open_table, :comment_stack, :keytype]
+  
+  # A key is either binary or atom depending on the parser option value
+  @type key :: binary | atom
+  
+  # A value is the fully parsed value from the TOML
+  @type value :: %{key => value}
+               | {:table_array, [%{key => value}]}
+               | number
+               | binary
+               | NaiveDateTime.t
+               | DateTime.t
+               | Date.t
+               | Time.t
+               | [value]
+               
+  # A keypath is a list of keys, they are all of the same key type
+  @type keypath :: list(binary) | list(atom)
+
+  @type t :: %__MODULE__{
+    keys: %{key => value},
+    comments: %{keypath => binary},
+    open_table: keypath,
+    comment_stack: [binary],
+    keytype: :string | :atom
+  }
   
   @compile inline: [key: 3, keys: 2, comment: 2, open: 2, close: 1, to_result: 1]
   
   @doc """
   Create a new empty TOML document
   """
-  def new() do
+  @spec new(Toml.opts) :: t
+  def new(opts) when is_list(opts) do
     %__MODULE__{
       keys: %{}, 
       comments: %{}, 
       open_table: nil,
-      comment_stack: []
+      comment_stack: [],
+      keytype: Keyword.get(opts, :keys, :string),
     }
   end
   
   @doc """
   Convert the given TOML document to a plain map.
   """
-  def to_map(%__MODULE__{keys: keys}) do
-    {:ok, to_map2(keys)}
+  def to_map(%__MODULE__{keys: keys, keytype: keytype}) do
+    {:ok, to_map2(keys, keytype)}
   end
-  defp to_map2(%_{} = s), do: s
-  defp to_map2(m) when is_map(m) do
+  defp to_map2(%_{} = s, _), do: s
+  defp to_map2(m, :string) when is_map(m) do
     for {k, v} <- m, into: %{} do
-      {k, to_map2(v)}
+      {k, to_map2(v, :string)}
     end
   end
-  defp to_map2(l) when is_list(l) do
+  defp to_map2(m, :atom) when is_map(m) do
+    for {k, v} <- m, into: %{} do
+      {String.to_atom(k), to_map2(v, :atom)}
+    end
+  end
+  defp to_map2(l, keytype) when is_list(l) do
     for item <- l do
-      to_map2(item)
+      to_map2(item, keytype)
     end
   end
-  defp to_map2({:table_array, l}), do: to_map2(Enum.reverse(l))
-  defp to_map2(v), do: v
+  defp to_map2({:table_array, l}, keytype), do: to_map2(Enum.reverse(l), keytype)
+  defp to_map2(v, _), do: v
   
   @doc """
   Push a comment on a stack containing lines of comments applying to some element.

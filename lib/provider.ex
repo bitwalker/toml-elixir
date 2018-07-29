@@ -28,7 +28,7 @@ defmodule Toml.Provider do
   @doc false
   def init([path]) do
     with {:ok, expanded} <- expand_path(path),
-         {:ok, map} <- Toml.Parser.parse_file(expanded),
+         {:ok, map} <- Toml.Parser.parse_file(expanded, keys: :atom),
          keyword when is_list(keyword) <- to_keyword(map) do
       persist(keyword)
     else
