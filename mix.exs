@@ -7,6 +7,8 @@ defmodule Toml.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
+      description: "An implementation of TOML for Elixir projects",
+      package: package(),
       deps: deps(),
       aliases: aliases(Mix.env),
       elixirc_paths: elixirc_paths(Mix.env),
@@ -24,6 +26,13 @@ defmodule Toml.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [{:jason, "~> 1.0", only: [:test]}]
+  end
+
+  defp package do
+    [files: ["lib", "mix.exs", "README.md", "LICENSE"],
+     maintainers: ["Paul Schoenfelder"],
+     licenses: ["Apache 2.0"],
+     links: %{"GitHub" => "https://github.com/bitwalker/toml-elixir"}]
   end
   
   defp escript(:test) do
