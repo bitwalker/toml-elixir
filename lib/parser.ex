@@ -202,6 +202,8 @@ defmodule Toml.Parser do
     do: "'#{data}' (#{token})"
   defp format_token({token, _}),
     do: "'#{<<token>>}'"
+  defp format_token(token),
+    do: "'#{token}'"
   
   # Skip top-level whitespace and newlines
   defp handle_token(lexer, original, doc, :whitespace, _skip, _data, _lines),
