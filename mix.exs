@@ -13,11 +13,12 @@ defmodule Toml.MixProject do
       deps: deps(),
       aliases: aliases(Mix.env),
       preferred_cli_env: [
-        bench: :bench,
+        bench: :bench, 
         "bench.decoder": :bench,
-        "bench.lexer": :bench,
+        "bench.lexer": :bench, 
         docs: :docs
       ],
+      dialyzer: dialyzer(),
       elixirc_paths: elixirc_paths(Mix.env),
       escript: escript(Mix.env)
     ]
@@ -74,6 +75,12 @@ defmodule Toml.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(:bench), do: ["lib", "bench/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp dialyzer do
+    [
+      ignore_warnings: "dialyzer.ignore"
+    ]
+  end
 
   defp clean(_args) do
     toml = Path.join([__DIR__, "bin", "toml"])
