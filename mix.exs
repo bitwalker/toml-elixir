@@ -25,7 +25,8 @@ defmodule Toml.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    [{:jason, "~> 1.0", only: [:test]}]
+    [{:ex_doc, ">= 0.0.0", only: [:dev]},
+     {:jason, "~> 1.0", only: [:test]}]
   end
 
   defp package do
