@@ -7,10 +7,17 @@ defmodule Toml.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() != :test,
       description: "An implementation of TOML for Elixir projects",
       package: package(),
       deps: deps(),
       aliases: aliases(Mix.env),
+      preferred_cli_env: [
+        bench: :bench,
+        "bench.decoder": :bench,
+        "bench.lexer": :bench,
+        docs: :docs
+      ],
       elixirc_paths: elixirc_paths(Mix.env),
       escript: escript(Mix.env)
     ]
@@ -19,14 +26,24 @@ defmodule Toml.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: []
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    [{:ex_doc, ">= 0.0.0", only: [:dev]},
-     {:jason, "~> 1.0", only: [:test]}]
+    [
+      {:ex_doc, ">= 0.0.0", only: [:docs]},
+      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
+      {:benchee, "~> 0.13", only: [:bench]},
+      {:benchee_html, "~> 0.5", only: [:bench]},
+      {:jason, "~> 1.0", only: [:test, :bench]},
+      # For benchmarking, though none of these libraries work at this point
+      # {:tomlex, "~> 0.0.5", only: [:bench]},
+      # {:toml_elixir, "~> 2.0.1", only: [:bench]},
+      # {:jerry, "~> 0.1.4", only: [:bench]},
+      # {:etoml, "~> 0.1.0", only: [:bench]},
+    ]
   end
 
   defp package do
@@ -47,12 +64,15 @@ defmodule Toml.MixProject do
   
   defp aliases(_env) do
     [
-      "test-all": ["test", "toml.tests"],
-      clean: ["clean", &clean/1]
+      clean: ["clean", &clean/1],
+      bench: ["bench.decoder", "bench.lexer"],
+      "bench.decoder": ["run bench/bench.decoder.exs"],
+      "bench.lexer": ["run bench/bench.lexer.exs"],
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:bench), do: ["lib", "bench/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   defp clean(_args) do

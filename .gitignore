@@ -22,3 +22,5 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 toml-*.tar
 
+# Ignore generated benchmark output
+/bench/output/
