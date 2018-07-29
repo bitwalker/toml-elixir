@@ -152,7 +152,7 @@ title = "My config file"
 
 # We're expecting something like this:
 [myapp]
-key = value
+key = "value"
 
 # To use a bit of Phoenix config, you translate to TOML like so:
 [myapp."MyApp.Endpoint"]
