@@ -23,6 +23,24 @@ spec at the link above (it is short and easy to read!).
   files for configuration!)
 - Parser is written by hand to take advantage of various optimizations.
 
+## Comparison To Other Libraries
+
+I compared `toml` to four other libraries:
+
+- `toml_elixir`
+- `tomlex`
+- `jerry`
+- `etoml`
+
+Of these four, none correctly implement the 0.5.0 specification. Either they are
+targeting older versions of the spec (in `etoml`, it is built against pre-0.1),
+are not fully implemented (i.e. don't support all features), or have bugs which
+prevent them from properly parsing a 0.5.0 example file (the
+`test/fixtures/example.toml` file in this repository).
+
+If you are looking for a TOML library, at present `toml` is the only one which
+full implements the spec and correctly parses `example.toml`.
+
 ## Installation
 
 This library is available on Hex as `:toml`, and can be added to your deps like so:
