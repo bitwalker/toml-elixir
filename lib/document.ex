@@ -9,7 +9,7 @@ defmodule Toml.Document do
   defstruct [:keys, :comments, :open_table, :comment_stack, :keytype]
   
   # A key is either binary or atom depending on the decoder option value
-  @type key :: binary | atom
+  @type key :: binary | atom | term
   
   # A value is the fully decoded value from the TOML
   @type value :: %{key => value}
@@ -23,14 +23,14 @@ defmodule Toml.Document do
                | [value]
                
   # A keypath is a list of keys, they are all of the same key type
-  @type keypath :: list(binary) | list(atom)
+  @type keypath :: list(binary) | list(atom) | list(term)
 
   @type t :: %__MODULE__{
     keys: %{key => value},
     comments: %{keypath => binary},
     open_table: keypath,
     comment_stack: [binary],
-    keytype: :strings | :atoms | :atoms!
+    keytype: :strings | :atoms | :atoms! | ((binary) -> term)
   }
   
   @compile inline: [key: 3, keys: 2, comment: 2, open: 2, close: 1, to_result: 1]
@@ -53,31 +53,19 @@ defmodule Toml.Document do
   Convert the given TOML document to a plain map.
   """
   @spec to_map(t) :: {:ok, map} | {:error, term}
-  def to_map(%__MODULE__{keys: keys, keytype: keytype}) do
-    {:ok, to_map2(keys, keytype)}
+  def to_map(%__MODULE__{keys: keys, keytype: type}) do
+    {:ok, to_map2(keys, to_key_fun(type))}
   catch
     :throw, {:error, _} = err ->
       err
   end
   defp to_map2(%_{} = s, _), do: s
-  defp to_map2(m, :strings) when is_map(m) do
-    for {k, v} <- m, into: %{} do
-      {k, to_map2(v, :strings)}
-    end
+  defp to_map2(m, nil) when is_map(m) do
+    for {k, v} <- m, into: %{}, do: {k, to_map2(v, nil)}
   end
-  defp to_map2(m, :atoms) when is_map(m) do
+  defp to_map2(m, fun) when is_map(m) and is_function(fun, 1) do
     for {k, v} <- m, into: %{} do
-      {String.to_atom(k), to_map2(v, :atoms)}
-    end
-  end
-  defp to_map2(m, :atoms!) when is_map(m) do
-    for {k, v} <- m, into: %{} do
-      try do
-        {String.to_existing_atom(k), to_map2(v, :atoms!)}
-      rescue
-        ArgumentError ->
-          throw {:error, {:keys, {:non_existing_atom, k}}}
-      end
+      {fun.(k), to_map2(v, fun)}
     end
   end
   defp to_map2(l, keytype) when is_list(l) do
@@ -87,6 +75,29 @@ defmodule Toml.Document do
   end
   defp to_map2({:table_array, l}, keytype), do: to_map2(Enum.reverse(l), keytype)
   defp to_map2(v, _), do: v
+  
+  defp to_key_fun(:atoms), do: &to_atom/1
+  defp to_key_fun(:atoms!), do: &to_existing_atom/1
+  defp to_key_fun(:strings), do: nil
+  defp to_key_fun(fun) when is_function(fun, 1), do: fun
+  
+  defp to_atom(<<c::utf8, _::binary>> = key) when c >= ?A and c <= ?Z do
+    Module.concat([key])
+  end
+  defp to_atom(key), do: String.to_atom(key)
+  
+  defp to_existing_atom(<<c::utf8, _::binary>> = key) when c >= ?A and c <= ?Z do
+    Module.concat([String.to_existing_atom(key)])
+  rescue
+    ArgumentError ->
+      throw {:error, {:keys, {:non_existing_atom, key}}}
+  end
+  defp to_existing_atom(key) do
+    String.to_existing_atom(key)
+  rescue
+    ArgumentError ->
+      throw {:error, {:keys, {:non_existing_atom, key}}}
+  end
   
   @doc """
   Push a comment on a stack containing lines of comments applying to some element.

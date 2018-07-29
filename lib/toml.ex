@@ -18,6 +18,7 @@ defmodule Toml do
       * `:strings` (default) - decodes keys as strings
       * `:atoms` - converts keys to atoms with `String.to_atom/1`
       * `:atoms!` - converts keys to atoms with `String.to_existing_atom/1`
+      * `(key -> term)` - converts keys using the provided function
       
   ## Decoding keys to atoms
 
