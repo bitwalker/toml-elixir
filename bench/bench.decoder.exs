@@ -1,5 +1,5 @@
 decode_jobs = %{
-  "toml"  => fn path -> {:ok, _} = Toml.parse_file(path) end,
+  "toml"  => fn path -> {:ok, _} = Toml.decode_file(path) end,
   # Incorrect implementation of 0.5.0 (expected, but fails during parsing)
   # "toml_elixir" => fn path -> {:ok, _} = TomlElixir.parse_file(path) end,
   # Doesn't support 0.5.0 spec, or incomplete

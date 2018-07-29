@@ -14,12 +14,12 @@ defmodule Toml.Test.Assertions do
   """
   def assert_toml_valid(path) do
     json = Path.join([Path.dirname(path), Path.basename(path, ".toml") <> ".json"])
-    case Toml.parse_file(path) do
+    case Toml.decode_file(path) do
       {:error, {:invalid_toml, reason}} when is_binary(reason) ->
         flunk(reason)
-      {:ok, parsed} ->
+      {:ok, decoded} ->
         expected = JsonConverter.parse_json_file!(json)
-        typed = JsonConverter.to_typed_map(parsed)
+        typed = JsonConverter.to_typed_map(decoded)
         assert_deep_equal(expected, typed)
     end
   end

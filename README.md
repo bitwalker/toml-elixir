@@ -10,18 +10,18 @@ spec at the link above (it is short and easy to read!).
 
 ## Features
 
-- Parse from string, file, or stream
+- Decode from string, file, or stream
 - Fully compliant with the latest version of the TOML spec
 - Is tested against [toml-test](https://github.com/BurntSushi/toml-test), a test
   suite for spec-compliant TOML encoders/decoders, used by implementations in
   multiple languages. The test suite has been integrated into this project to be
   run under Mix so that we get better error information and so it can run as
   part of the test suite.
-- Parser produces a map with values using the appropriate Elixir data types for
+- Decoder produces a map with values using the appropriate Elixir data types for
   representation
 - Supports use as a configuration provider in Distillery 2.x+ (use TOML
   files for configuration!)
-- Parser is written by hand to take advantage of various optimizations.
+- Decoder is written by hand to take advantage of various optimizations.
 
 ## Comparison To Other Libraries
 
@@ -39,7 +39,7 @@ prevent them from properly parsing a 0.5.0 example file (the
 `test/fixtures/example.toml` file in this repository).
 
 If you are looking for a TOML library, at present `toml` is the only one which
-full implements the spec and correctly parses `example.toml`.
+full implements the spec and correctly decodes `example.toml`.
 
 ## Installation
 
@@ -124,16 +124,16 @@ iex> input = """
 [database]
 server = "192.168.1.1"
 """
-...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.parse(input)
-...> {:ok, %{database: %{server: "192.168.1.1"}}} = Toml.parse(input, keys: :atom)
+...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.decode(input)
+...> {:ok, %{database: %{server: "192.168.1.1"}}} = Toml.decode(input, keys: :atoms)
 ...> stream = File.stream!("example.toml")
-...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.parse_stream(stream)
-...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.parse_file("example.toml")
+...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.decode_stream(stream)
+...> {:ok, %{"database" => %{"server" => "192.168.1.1"}}} = Toml.decode_file("example.toml")
 ...> invalid = """
 [invalid]
 a = 1 b = 2
 """
-...> {:error, {:invalid_toml, reason}} = Toml.parse(invalid); IO.puts(reason)
+...> {:error, {:invalid_toml, reason}} = Toml.decode(invalid); IO.puts(reason)
 expected '\n', but got 'b' in nofile on line 2:
 
     a = 1 b = 2
@@ -195,7 +195,7 @@ format = "[$level] $message \n"
 
 - [x] Add benchmarking suite
 - [x] Provide options for converting keys to atom, similar to Jason/Poison/etc.
-- [ ] Optimize lexer to always send offsets to parser, rather than only in some cases
+- [ ] Optimize lexer to always send offsets to decoder, rather than only in some cases
 - [ ] Try to find pathological TOML files to test
 
 ## License

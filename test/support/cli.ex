@@ -171,9 +171,9 @@ defmodule Toml.CLI do
     
   # Parse the given input with the appropriate parser
   defp parse(input) when is_binary(input), 
-    do: Toml.parse_file(input)
+    do: Toml.decode_file(input)
   defp parse(stream), 
-    do: Toml.parse_stream(stream)
+    do: Toml.decode_stream(stream)
   
   # Write an error to stderr and halt non-zero
   defp fail!({:error, reason}) when is_binary(reason) do

@@ -1,4 +1,4 @@
-defmodule Toml.Parser do
+defmodule Toml.Decoder do
   @moduledoc false
   
   alias Toml.Document
@@ -9,16 +9,19 @@ defmodule Toml.Parser do
                     iodata_to_str: 1, iodata_to_integer: 1, iodata_to_float: 1]
   
   @doc """
-  Parses a raw binary
+  Decodes a raw binary
   """
-  @spec parse(binary, Toml.opts) :: {:ok, map} | {:error, term}
-  def parse(bin, opts) when is_binary(bin) and is_list(opts) do
+  @spec decode(binary, Toml.opts) :: {:ok, map} | {:error, term}
+  def decode(bin, opts) when is_binary(bin) and is_list(opts) do
     filename = Keyword.get(opts, :filename, "nofile")
     {:ok, lexer} = Lexer.new(bin)
     try do
-      with {:ok, %Document{} = doc} <- do_parse(lexer, bin, Document.new(opts)) do
-        Document.to_map(doc)
+      with {:ok, %Document{} = doc} <- do_decode(lexer, bin, Document.new(opts)),
+           {:ok, _} = ok <- Document.to_map(doc) do
+        ok
       else
+        {:error, {:keys, :non_existing_atom} = reason} ->
+          {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
         {:error, reason, skip, lines} ->
           {:error, {:invalid_toml, format_error(reason, bin, filename, skip, lines)}}
       end
@@ -26,24 +29,27 @@ defmodule Toml.Parser do
       :throw, {:error, {:invalid_toml, reason}} = err when is_binary(reason) ->
          err
       :throw, {:error, {:invalid_toml, reason}} ->
-        {:error, {:invalid_toml, format_reason(reason)}}
+        {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
     after
       Lexer.stop(lexer)
     end
   end
 
   @doc """
-  Parses a stream
+  Decodes a stream
   """
-  @spec parse_stream(Enumerable.t, Toml.opts) :: {:ok, map} | {:error, term}
-  def parse_stream(stream, opts) do
+  @spec decode_stream(Enumerable.t, Toml.opts) :: {:ok, map} | {:error, term}
+  def decode_stream(stream, opts) do
     filename = Keyword.get(opts, :filename, "nofile")
     bin = Enum.into(stream, <<>>)
     {:ok, lexer} = Lexer.new(bin)
     try do
-      with {:ok, %Document{} = doc} <- do_parse(lexer, bin, Document.new(opts)) do
-        Document.to_map(doc)
+      with {:ok, %Document{} = doc} <- do_decode(lexer, bin, Document.new(opts)),
+           {:ok, _} = ok <- Document.to_map(doc) do
+        ok
       else
+        {:error, {:keys, :non_existing_atom} = reason} ->
+          {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
         {:error, reason, skip, lines} ->
           filename = Path.relative_to_cwd(filename)
           {:error, {:invalid_toml, format_error(reason, bin, filename, skip, lines)}}
@@ -52,17 +58,17 @@ defmodule Toml.Parser do
       :throw, {:error, {:invalid_toml, reason}} = err when is_binary(reason) ->
         err
       :throw, {:error, {:invalid_toml, reason}} ->
-        {:error, {:invalid_toml, format_reason(reason)}}
+        {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
     after
       Lexer.stop(lexer)
     end
   end
   
   @doc """
-  Parses a file
+  Decodes a file
   """
-  @spec parse_file(String.t, Toml.opts) :: {:ok, map} | {:error, term}
-  def parse_file(path, opts) when is_binary(path) do
+  @spec decode_file(String.t, Toml.opts) :: {:ok, map} | {:error, term}
+  def decode_file(path, opts) when is_binary(path) do
     opts =
       case Keyword.get(opts, :filename) do
         nil ->
@@ -71,16 +77,16 @@ defmodule Toml.Parser do
           opts
       end
     with {:ok, bin} <- File.read(path),
-         {:ok, _} = result <- parse(bin, opts) do
+         {:ok, _} = result <- decode(bin, opts) do
       result
     end
   end
   
-  ## Parser Implementation
+  ## Decoder Implementation
   
-  defp do_parse(_lexer, _original, {:error, _, _, _} = err), 
+  defp do_decode(_lexer, _original, {:error, _, _, _} = err), 
     do: err
-  defp do_parse(lexer, original, doc) do
+  defp do_decode(lexer, original, doc) do
     case Lexer.pop(lexer) do
       {:error, _reason, _skip, _lines} = err ->
         err
@@ -91,7 +97,7 @@ defmodule Toml.Parser do
   
   # Converts an error into a friendly, printable representation
   defp format_error(reason, original, filename, skip, lines) do
-    msg = "#{format_reason(reason)} in #{Path.relative_to_cwd(filename)} on line #{lines}"
+    msg = "#{Toml.Error.format_reason(reason)} in #{Path.relative_to_cwd(filename)} on line #{lines}"
     {ctx, pos} = seek_line(original, skip, lines)
     """
     #{msg}:
@@ -139,78 +145,15 @@ defmodule Toml.Parser do
     seek_to_eol(rest, len+1)
   end
   
-  # Convert internal error reasons into friendly, printable form
-  defp format_reason({:expected, token, other}),
-    do: "expected #{format_token(token)}, but got #{format_token(other)}"
-  defp format_reason({:invalid_token, token}),
-    do: "invalid token #{format_token(token)}"
-  defp format_reason({:invalid_integer, :leading_zero}),
-    do: "invalid integer syntax, leading zeros are not allowed"
-  defp format_reason({:invalid_float, :leading_zero}),
-    do: "invalid float syntax, leading zeros are not allowed"
-  defp format_reason({:invalid_float, token}),
-    do: "invalid float syntax, unexpected token #{format_token(token)}"
-  defp format_reason({:invalid_datetime, reason}),
-    do: "invalid datetime syntax, #{inspect reason}"
-  defp format_reason({:invalid_datetime_offset, reason}),
-    do: "invalid datetime offset syntax, #{inspect reason}"
-  defp format_reason({:invalid_date, reason}),
-    do: "invalid date syntax, #{inspect reason}"
-  defp format_reason({:invalid_time, reason}),
-    do: "invalid time syntax, #{inspect reason}"
-  defp format_reason({:invalid_key_value, token}),
-    do: "invalid key/value syntax, unexpected token #{format_token(token)}"
-  defp format_reason({:unclosed_table_array_name, token}),
-    do: "unclosed table array name at #{format_token(token)}"
-  defp format_reason({:unclosed_array, {oline, ocol}}),
-    do: "unclosed array started at #{oline}:#{ocol}"
-  defp format_reason({:unclosed_inline_table, {oline, ocol}}),
-    do: "unclosed inline table started at #{oline}:#{ocol}"
-  defp format_reason(:unclosed_quote),
-    do: "unclosed quoted string"
-  defp format_reason(:unexpected_newline),
-    do: "unexpected newline in single-quoted string"
-  defp format_reason(:unexpected_eof),
-    do: "unexpected end of file"
-  defp format_reason({:invalid_escape, char}),
-    do: "illegal escape sequence #{char}"
-  defp format_reason({:invalid_char, char}) do
-    if String.printable?(char) do
-      "illegal character #{inspect char, base: :hex} ('#{char}')"
-    else
-      "illegal character #{inspect char, base: :hex}"
-    end
-  end
-  defp format_reason({:invalid_unicode, message}) do
-    "illegal unicode escape, #{message}"
-  end
-  defp format_reason({:key_exists, key}) do
-    "cannot redefine key '#{key}'"
-  end
-  defp format_reason(reason), do: "#{inspect reason}"
-  
-  # Format a token in `{type, data}`, or `type` form into printable representation
-  defp format_token({true, _}), do: "'true'"
-  defp format_token({false, _}), do: "'false'"
-  defp format_token(:newline), do: "'\\n'"
-  defp format_token({_, data}) when is_binary(data),
-    do: "'#{data}'"
-  defp format_token({token, data}) when is_atom(token),
-    do: "'#{data}' (#{token})"
-  defp format_token({token, _}),
-    do: "'#{<<token>>}'"
-  defp format_token(token),
-    do: "'#{token}'"
-  
   # Skip top-level whitespace and newlines
   defp handle_token(lexer, original, doc, :whitespace, _skip, _data, _lines),
-    do: do_parse(lexer, original, doc)
+    do: do_decode(lexer, original, doc)
   defp handle_token(lexer, original, doc, :newline, _skip, _data, _lines),
-    do: do_parse(lexer, original, doc)
+    do: do_decode(lexer, original, doc)
   # Push comments on the comment stack
   defp handle_token(lexer, original, doc, :comment, skip, size, _lines) do
     comment = binary_part(original, skip-size, size)
-    do_parse(lexer, original, Document.push_comment(doc, comment))
+    do_decode(lexer, original, Document.push_comment(doc, comment))
   end
   # Handle valid top-level entities
   # - array of tables
@@ -258,9 +201,9 @@ defmodule Toml.Parser do
           err
         {:ok, {:comment, _, _, _}} ->
           # Implies newline
-          do_parse(lexer, original, doc)
+          do_decode(lexer, original, doc)
         {:ok, {type, _, _, _}} when type in [:newline, :eof] ->
-          do_parse(lexer, original, doc)
+          do_decode(lexer, original, doc)
         {:ok, {type, skip, data, lines}} ->
           {:error, {:expected, :newline, {type, data}}, skip, lines}
       end
@@ -283,9 +226,9 @@ defmodule Toml.Parser do
         {:error, _, _, _} = err ->
           err
         {:ok, {:comment, _, _, _}} ->
-          do_parse(lexer, original, doc)
+          do_decode(lexer, original, doc)
         {:ok, {type, _, _, _}} when type in [:newline, :eof] ->
-          do_parse(lexer, original, doc)
+          do_decode(lexer, original, doc)
         {:ok, {type, skip, data, lines}} ->
           {:error, {:expected, :newline, {type, data}}, skip, lines}
       end
@@ -310,9 +253,9 @@ defmodule Toml.Parser do
         {:error, _, _, _} = err ->
           err
         {:ok, {:comment, _, _, _}} ->
-          do_parse(lexer, original, doc)
+          do_decode(lexer, original, doc)
         {:ok, {type, _, _, _}} when type in [:newline, :eof] ->
-          do_parse(lexer, original, doc)
+          do_decode(lexer, original, doc)
         {:ok, {type, skip, data, lines}} ->
           {:error, {:expected, :newline, {type, data}}, skip, lines}
       end
@@ -570,7 +513,7 @@ defmodule Toml.Parser do
   end
   
   defp datetime(lexer, parts, time) do
-    # At this point we have at least YYYY-mm-dd and a fully parsed time
+    # At this point we have at least YYYY-mm-dd and a fully decoded time
     with {:ok, date} <- Date.from_iso8601(iodata_to_str(parts)),
          {:ok, naive} <- NaiveDateTime.new(date, time) do
       # We just need to check for Z or UTC offset

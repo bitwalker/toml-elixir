@@ -30,21 +30,21 @@ defmodule Toml.Lexer do
   The lexer is a process, which manages the state of the lexer,
   and provides the following benefits:
 
-  - Only lexes content as the parser walks the document, minimizing
+  - Only lexes content as the decoder walks the document, minimizing
     the work performed, and resources (i.e. memory) used.
   - Allows pushing an arbitrary tokens back on the stack, allowing the
-    parser to "rewind" the lexer and try an alternative path.
-  - Lexing the next token happens concurrently with the parser handling the last token
+    decoder to "rewind" the lexer and try an alternative path.
+  - Lexing the next token happens concurrently with the decoder handling the last token
   
   Currently, the lexer will build up strings for most tokens and send them back to
-  the parser, since these are running in separate processes, this means all string data
+  the decoder, since these are running in separate processes, this means all string data
   contained in the tokens is copied. For some tokens, like comments, the lexer will send
   only the token type (e.g. `:comment`), and indexes into the original input, so that the
   content can be extracted only when needed, and in the most efficient manner possible. In
   the future, the lexer will do this will all tokens, allowing us to only make copies or store
   references into the original input when absolutely needed. We do not do this currently, as
   strings in TOML have escapes, which need to be unescaped during parsing. This could be deferred
-  and done in the parser, but is not done so right now.
+  and done in the decoder, but is not done so right now.
   
   Returns `{:ok, %#{__MODULE__}{}}`.
   """

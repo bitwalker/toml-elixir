@@ -28,13 +28,10 @@ defmodule Toml.Provider do
   @doc false
   def init([path]) do
     with {:ok, expanded} <- expand_path(path),
-         {:ok, map} <- Toml.Parser.parse_file(expanded, keys: :atom),
+         map = Toml.decode_file!(expanded, keys: :atom),
          keyword when is_list(keyword) <- to_keyword(map) do
       persist(keyword)
     else
-      {:error, {:invalid_toml, _}} = err ->
-        # Terminate with an exception if we encounter an error
-        raise Toml.Error, err
       {:error, reason} ->
         exit(reason)
     end

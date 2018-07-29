@@ -1,17 +1,17 @@
 defmodule Toml.Document do
   @moduledoc false
   
-  # This module/struct is used for managing the state of the parsed TOML
+  # This module/struct is used for managing the state of the decoded TOML
   # document, namely constructing the map which is ultimately returned by
-  # the parser, and validating the mutations of the document. All operations
+  # the decoder, and validating the mutations of the document. All operations
   # either return a valid document or an error.
 
   defstruct [:keys, :comments, :open_table, :comment_stack, :keytype]
   
-  # A key is either binary or atom depending on the parser option value
+  # A key is either binary or atom depending on the decoder option value
   @type key :: binary | atom
   
-  # A value is the fully parsed value from the TOML
+  # A value is the fully decoded value from the TOML
   @type value :: %{key => value}
                | {:table_array, [%{key => value}]}
                | number
@@ -30,7 +30,7 @@ defmodule Toml.Document do
     comments: %{keypath => binary},
     open_table: keypath,
     comment_stack: [binary],
-    keytype: :string | :atom
+    keytype: :strings | :atoms | :atoms!
   }
   
   @compile inline: [key: 3, keys: 2, comment: 2, open: 2, close: 1, to_result: 1]
@@ -45,25 +45,39 @@ defmodule Toml.Document do
       comments: %{}, 
       open_table: nil,
       comment_stack: [],
-      keytype: Keyword.get(opts, :keys, :string),
+      keytype: Keyword.get(opts, :keys, :strings),
     }
   end
   
   @doc """
   Convert the given TOML document to a plain map.
   """
+  @spec to_map(t) :: {:ok, map} | {:error, term}
   def to_map(%__MODULE__{keys: keys, keytype: keytype}) do
     {:ok, to_map2(keys, keytype)}
+  catch
+    :throw, {:error, _} = err ->
+      err
   end
   defp to_map2(%_{} = s, _), do: s
-  defp to_map2(m, :string) when is_map(m) do
+  defp to_map2(m, :strings) when is_map(m) do
     for {k, v} <- m, into: %{} do
-      {k, to_map2(v, :string)}
+      {k, to_map2(v, :strings)}
     end
   end
-  defp to_map2(m, :atom) when is_map(m) do
+  defp to_map2(m, :atoms) when is_map(m) do
     for {k, v} <- m, into: %{} do
-      {String.to_atom(k), to_map2(v, :atom)}
+      {String.to_atom(k), to_map2(v, :atoms)}
+    end
+  end
+  defp to_map2(m, :atoms!) when is_map(m) do
+    for {k, v} <- m, into: %{} do
+      try do
+        {String.to_existing_atom(k), to_map2(v, :atoms!)}
+      rescue
+        ArgumentError ->
+          throw {:error, {:keys, {:non_existing_atom, k}}}
+      end
     end
   end
   defp to_map2(l, keytype) when is_list(l) do

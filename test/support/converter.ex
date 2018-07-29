@@ -2,7 +2,7 @@ defmodule Toml.Test.JsonConverter do
   @moduledoc false
   
   def parse_toml_file!(path) do
-    case Toml.parse_file(path) do
+    case Toml.decode_file(path) do
       {:ok, map} ->
         Jason.encode!(to_typed_map(map), pretty: true)
       {:error, _} = err ->
