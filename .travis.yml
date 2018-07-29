@@ -1,0 +1,11 @@
+sudo: false
+language: elixir
+elixir:
+  - 1.6
+otp_release:
+  - 21.0
+script:
+  - "MIX_ENV=test mix do deps.get, test"
+notifications:
+  recipients:
+    - paulschoenfelder@gmail.com
