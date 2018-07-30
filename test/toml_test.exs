@@ -128,6 +128,11 @@ defmodule Toml.Test do
     input = Path.join([__DIR__, "fixtures", "test.toml"])
     assert_toml_valid(input)
   end
+
+  test "test2.toml" do
+    input = Path.join([__DIR__, "fixtures", "test2.toml"])
+    assert_toml_valid(input)
+  end
   
   test "hard.toml" do
     input = Path.join([__DIR__, "fixtures", "hard.toml"])
