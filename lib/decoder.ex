@@ -86,7 +86,7 @@ defmodule Toml.Decoder do
     #{msg}:
     
         #{ctx}
-        #{String.duplicate(" ", pos+1)}^
+       #{String.duplicate(" ", pos)}^
     """
   end
   
@@ -98,7 +98,7 @@ defmodule Toml.Decoder do
     case seek_to_eol(rest, 0) do
       0 ->
         {binary_part(original, lastnl, from-lastnl), from-lastnl}
-      len_to_eol ->
+      len_to_eol when len_to_eol > 0 ->
         {binary_part(original, from, len_to_eol), len}
     end
   end
@@ -109,7 +109,7 @@ defmodule Toml.Decoder do
   defp seek_line(original, <<?\r, ?\n, rest::binary>>, _, from, len, lines) do
     seek_line(original, rest, from+2, from+2, len-2, lines-1)
   end
-  defp seek_line(original, <<?\n, _::binary>> = rest, lastnl, from, len, 1) when len <= 0 do
+  defp seek_line(original, <<?\n, rest::binary>>, lastnl, from, len, 1) when len <= 0 do
     # Content occurred on the last line right before the newline
     seek_line(original, rest, lastnl, from+1, 0, 0)
   end

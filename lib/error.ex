@@ -78,5 +78,5 @@ defmodule Toml.Error do
   defp format_token({token, _}),
     do: "'#{<<token>>}'"
   defp format_token(token),
-    do: "'#{token}'"
+    do: "'#{<<token>>}'"
 end

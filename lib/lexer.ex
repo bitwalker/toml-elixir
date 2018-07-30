@@ -179,13 +179,13 @@ defmodule Toml.Lexer do
   defp do_lex(<<>> = data, skip, lines), 
     do: {:ok, data, {:eof, skip, 0, lines}}
   defp do_lex(<<?\#, rest::binary>>, skip, lines), 
-    do: lex_comment(rest, 0, skip+1, lines)
+    do: lex_comment(rest, skip+1, 0, lines)
   defp do_lex(<<?\r, ?\n, rest::binary>>, skip, lines),
     do: {:ok, rest, {:newline, skip+2, 0, lines+1}}
   defp do_lex(<<?\n, rest::binary>>, skip, lines),
     do: {:ok, rest, {:newline, skip+1, 0, lines+1}}
   defp do_lex(<<c::utf8, rest::binary>>, skip, lines) when is_whitespace(c),
-    do: lex_whitespace(rest, skip, lines)
+    do: lex_whitespace(rest, skip+1, lines)
   defp do_lex(<<"true", rest::binary>>, skip, lines),
     do: {:ok, rest, {true, skip+4, 0, lines}}
   defp do_lex(<<"false", rest::binary>>, skip, lines),
@@ -213,17 +213,17 @@ defmodule Toml.Lexer do
   defp do_lex(<<?_, rest::binary>>, skip, lines),
     do: {:ok, rest, {?_, skip+1, 0, lines}}
   defp do_lex(<<?0, ?x, c::utf8, rest::binary>>, skip, lines) when is_hex(c),
-    do: lex_hex(rest, [c], skip+3, lines)
+    do: lex_hex(rest, skip+3, [c], lines)
   defp do_lex(<<?0, ?o, c::utf8, rest::binary>>, skip, lines) when is_octal(c),
-    do: lex_octal(rest, [c], skip+3, lines)
+    do: lex_octal(rest, skip+3, [c], lines)
   defp do_lex(<<?0, ?b, c::utf8, rest::binary>>, skip, lines) when is_bin(c),
-    do: lex_binary(rest, [c], skip+3, lines)
+    do: lex_binary(rest, skip+3, [c], lines)
   defp do_lex(<<c::utf8, _::binary>> = data, skip, lines) when is_quote(c),
     do: __MODULE__.String.lex(data, skip, lines)
   defp do_lex(<<c::utf8, rest::binary>>, skip, lines) when is_digit(c),
-    do: lex_digits(rest, [c], skip+1, lines)
+    do: lex_digits(rest, skip+1, [c], lines)
   defp do_lex(<<c::utf8, rest::binary>>, skip, lines) when is_alpha(c),
-    do: lex_alpha(rest, [c], skip+1, lines)
+    do: lex_alpha(rest, skip+1, [c], lines)
   defp do_lex(<<c::utf8, _::binary>>, skip, lines),
     do: {:error, {:invalid_char, <<c::utf8>>}, skip+1, lines}
   
@@ -232,46 +232,46 @@ defmodule Toml.Lexer do
   defp lex_whitespace(rest, skip, lines),
     do: {:ok, rest, {:whitespace, skip, 0, lines}}
   
-  defp lex_comment(<<?\r, ?\n, rest::binary>>, size, skip, lines), 
+  defp lex_comment(<<?\r, ?\n, rest::binary>>, skip, size, lines), 
     do: {:ok, rest, {:comment, skip+2, size, lines+1}}
-  defp lex_comment(<<?\n, rest::binary>>, size, skip, lines),
+  defp lex_comment(<<?\n, rest::binary>>, skip, size, lines),
     do: {:ok, rest, {:comment, skip+1, size, lines+1}}
-  defp lex_comment(<<_::utf8, rest::binary>>, size, skip, lines), 
-    do: lex_comment(rest, size+1, skip+1, lines)
-  defp lex_comment(<<>> = rest, size, skip, lines),
+  defp lex_comment(<<_::utf8, rest::binary>>, skip, size, lines), 
+    do: lex_comment(rest, skip+1, size+1, lines)
+  defp lex_comment(<<>> = rest, skip, size, lines),
     do: {:ok, rest, {:comment, skip, size, lines}}
     
-  defp lex_digits(<<c::utf8, rest::binary>>, acc, skip, lines) when is_digit(c),
-    do: lex_digits(rest, [c | acc], skip+1, lines)
-  defp lex_digits(rest, acc, skip, lines) do
+  defp lex_digits(<<c::utf8, rest::binary>>, skip, acc, lines) when is_digit(c),
+    do: lex_digits(rest, skip+1, [c | acc], lines)
+  defp lex_digits(rest, skip, acc, lines) do
     bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
     {:ok, rest, {:digits, skip, bin, lines}}
   end
     
-  defp lex_hex(<<c::utf8, rest::binary>>, acc, skip, lines) when is_hex(c),
-    do: lex_hex(rest, [c | acc], skip+1, lines)
-  defp lex_hex(rest, acc, skip, lines) do
+  defp lex_hex(<<c::utf8, rest::binary>>, skip, acc, lines) when is_hex(c),
+    do: lex_hex(rest, skip+1, [c | acc], lines)
+  defp lex_hex(rest, skip, acc, lines) do
     bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
     {:ok, rest, {:hex, skip, bin, lines}}
   end
 
-  defp lex_octal(<<c::utf8, rest::binary>>, acc, skip, lines) when is_octal(c),
-    do: lex_octal(rest, [c | acc], skip+1, lines)
-  defp lex_octal(rest, acc, skip, lines) do
+  defp lex_octal(<<c::utf8, rest::binary>>, skip, acc, lines) when is_octal(c),
+    do: lex_octal(rest, skip+1, [c | acc], lines)
+  defp lex_octal(rest, skip, acc, lines) do
     bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
     {:ok, rest, {:octal, skip, bin, lines}}
   end
 
-  defp lex_binary(<<c::utf8, rest::binary>>, acc, skip, lines) when is_bin(c),
-    do: lex_binary(rest, [c | acc], skip+1, lines)
-  defp lex_binary(rest, acc, skip, lines) do
+  defp lex_binary(<<c::utf8, rest::binary>>, skip, acc, lines) when is_bin(c),
+    do: lex_binary(rest, skip+1, [c | acc], lines)
+  defp lex_binary(rest, skip, acc, lines) do
     bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
     {:ok, rest, {:binary, skip, bin, lines}}
   end
     
-  defp lex_alpha(<<c::utf8, rest::binary>>, acc, skip, lines) when is_alpha(c),
-    do: lex_alpha(rest, [c | acc], skip+1, lines)
-  defp lex_alpha(rest, acc, skip, lines) do
+  defp lex_alpha(<<c::utf8, rest::binary>>, skip, acc, lines) when is_alpha(c),
+    do: lex_alpha(rest, skip+1, [c | acc], lines)
+  defp lex_alpha(rest, skip, acc, lines) do
     bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
     {:ok, rest, {:alpha, skip, bin, lines}}
   end
