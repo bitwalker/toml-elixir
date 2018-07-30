@@ -1,6 +1,6 @@
 # TOML for Elixir
 
-[![Master](https://travis-ci.com/bitwalker/toml-elixir.svg?branch=master)](https://travis-ci.org/bitwalker/toml-elixir)
+[![Master](https://travis-ci.com/bitwalker/toml-elixir.svg?branch=master)](https://travis-ci.com/bitwalker/toml-elixir)
 [![Hex.pm Version](http://img.shields.io/hexpm/v/toml.svg?style=flat)](https://hex.pm/packages/toml)
 
 This is a TOML library for Elixir projects. It is compliant with version 0.5.0 of the
