@@ -206,7 +206,7 @@ above transforms like so:
 
 ```elixir
 iex> transforms = [IPStringToCharlist, CharlistToIP, ServerMapToList]
-...> {:ok, result} = Toml.parse("example.toml", keys: :atoms, transforms: transforms)
+...> {:ok, result} = Toml.decode("example.toml", keys: :atoms, transforms: transforms)
 %{servers: [%Server{name: :alpha, ip: {192,168,1,1}}, ports: [8080, 8081] | _]}
 ```
 
@@ -239,7 +239,7 @@ the file to the application environment (i.e. you access it via
 `Application.get_env/2`).
 
 You can pass the same options in the arguments list for `Toml.Provider` as you
-can to `Toml.parse/2`, but `:path` is required, and `:keys` only supports
+can to `Toml.decode/2`, but `:path` is required, and `:keys` only supports
 `:atoms` and `:atoms!` values.
 
 The config provider expects a certain format to the TOML file, namely that keys
