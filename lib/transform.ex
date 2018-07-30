@@ -83,7 +83,7 @@ defmodule Toml.Transform do
       
     Assuming we decode with the following options: 
 
-        Toml.decode!(content, keys: :atoms, transformers: [ServerTransform])
+        Toml.decode!(content, keys: :atoms, transforms: [ServerTransform])
       
     The result would be:
 
@@ -95,7 +95,7 @@ defmodule Toml.Transform do
          }
 
   """
-  @callback transform(key, value) :: {:halt, term} | :continue | {:error, term}
+  @callback transform(key, value) :: {:error, term} | term
   
   
   # Given a list of transform functions, compose them into a single transformation pass
