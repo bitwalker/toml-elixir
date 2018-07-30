@@ -189,7 +189,7 @@ defmodule Toml.Lexer do
   defp do_lex(<<"true", rest::binary>>, skip, lines),
     do: {:ok, rest, {true, skip+4, 0, lines}}
   defp do_lex(<<"false", rest::binary>>, skip, lines),
-    do: {:ok, rest, {false, skip+4, 0, lines}}
+    do: {:ok, rest, {false, skip+5, 0, lines}}
   defp do_lex(<<?=, rest::binary>>, skip, lines),
     do: {:ok, rest, {?=, skip+1, 0, lines}}
   defp do_lex(<<?., rest::binary>>, skip, lines),

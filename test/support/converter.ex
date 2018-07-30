@@ -20,6 +20,14 @@ defmodule Toml.Test.JsonConverter do
     end
   end
   
+  defp to_typed_value(:infinity), 
+    do: %{"type" => "integer", "value" => "Infinity"}
+  defp to_typed_value(:negative_infinity), 
+    do: %{"type" => "integer", "value" => "-Infinity"}
+  defp to_typed_value(:nan), 
+    do: %{"type" => "integer", "value" => "NaN"}
+  defp to_typed_value(:negative_nan), 
+    do: %{"type" => "integer", "value" => "-NaN"}
   defp to_typed_value(n) when is_integer(n), 
     do: %{"type" => "integer", "value" => Integer.to_string(n)}
   defp to_typed_value(n) when is_float(n), 

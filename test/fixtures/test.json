@@ -1,0 +1,296 @@
+{
+  "array": {
+    "ofTables": [
+      {
+        "a": {
+          "type": "bool",
+          "value": "false"
+        }
+      },
+      {
+        "a": []
+      },
+      {
+        "a": {
+          "type": "bool",
+          "value": "true"
+        }
+      }
+    ]
+  },
+  "basicMultiline": {
+    "type": "string",
+    "value": "First line\n\tSecond line_\n\n       Still second line"
+  },
+  "bool_array": {
+    "type": "array",
+    "value": [
+      {
+        "type": "bool",
+        "value": "false"
+      },
+      {
+        "type": "bool",
+        "value": "true"
+      },
+      {
+        "type": "bool",
+        "value": "false"
+      },
+      {
+        "type": "bool",
+        "value": "true"
+      }
+    ]
+  },
+  "date": {
+    "type": "datetime",
+    "value": "2017-04-04"
+  },
+  "dotted": {
+    "binary": {
+      "type": "integer",
+      "value": "43"
+    },
+    "hexa": {
+      "type": "integer",
+      "value": "65535"
+    },
+    "key": {
+      "type": "integer",
+      "value": "12"
+    },
+    "more_data": {
+      "type": "string",
+      "value": "some string"
+    },
+    "octal": {
+      "type": "integer",
+      "value": "511"
+    },
+    "sub": {
+      "subsub": {
+        "key": {
+          "a": {
+            "type": "string",
+            "value": "b"
+          },
+          "c": {
+            "type": "string",
+            "value": "d"
+          }
+        }
+      }
+    }
+  },
+  "double": {
+    "type": "float",
+    "value": "1.2345678901"
+  },
+  "fruit": [
+    {
+      "name": {
+        "type": "string",
+        "value": "apple"
+      },
+      "physical": {
+        "color": {
+          "type": "string",
+          "value": "red"
+        },
+        "shape": {
+          "type": "string",
+          "value": "round"
+        }
+      },
+      "variety": [
+        {
+          "name": {
+            "type": "string",
+            "value": "red delicious"
+          }
+        },
+        {
+          "name": {
+            "type": "string",
+            "value": "granny smith"
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "type": "string",
+        "value": "banana"
+      },
+      "variety": [
+        {
+          "name": {
+            "type": "string",
+            "value": "plantain"
+          }
+        }
+      ]
+    }
+  ],
+  "infinity": {
+    "type": "integer",
+    "value": "Infinity"
+  },
+  "inline_table": {
+    "data": {
+      "type": "integer",
+      "value": "0"
+    },
+    "id": {
+      "type": "integer",
+      "value": "1"
+    }
+  },
+  "int_array": {
+    "type": "array",
+    "value": [
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      }
+    ]
+  },
+  "integer": {
+    "type": "integer",
+    "value": "2"
+  },
+  "literalMultiline": {
+    "type": "string",
+    "value": "First line\nSecond line"
+  },
+  "long": {
+    "type": "integer",
+    "value": "1234567890000"
+  },
+  "m_inf": {
+    "type": "integer",
+    "value": "-Infinity"
+  },
+  "m_nan": {
+    "type": "integer",
+    "value": "-NaN"
+  },
+  "multilineArray": {
+    "type": "array",
+    "value": [
+      {
+        "type": "string",
+        "value": "multiline\n    string"
+      },
+      {
+        "type": "string",
+        "value": "multiline\n    string"
+      },
+      {
+        "type": "string",
+        "value": "string"
+      },
+      {
+        "type": "string",
+        "value": "string"
+      }
+    ]
+  },
+  "nan": {
+    "type": "integer",
+    "value": "NaN"
+  },
+  "nested_arrays": {
+    "type": "array",
+    "value": [
+      {
+        "type": "array",
+        "value": [
+          {
+            "type": "string",
+            "value": "b"
+          },
+          {
+            "type": "string",
+            "value": "a"
+          }
+        ]
+      },
+      {
+        "type": "array",
+        "value": [
+          {
+            "type": "bool",
+            "value": "false"
+          },
+          {
+            "type": "bool",
+            "value": "true"
+          }
+        ]
+      },
+      {
+        "type": "array",
+        "value": [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      }
+    ]
+  },
+  "p_inf": {
+    "type": "integer",
+    "value": "Infinity"
+  },
+  "p_nan": {
+    "type": "integer",
+    "value": "NaN"
+  },
+  "preciseTime": {
+    "type": "datetime",
+    "value": "16:41:20.00700"
+  },
+  "spaces": {
+    "type": "float",
+    "value": "10000999.010203"
+  },
+  "string": {
+    "type": "string",
+    "value": "value"
+  },
+  "subkey": {
+    "type": "datetime",
+    "value": "2017-02-25T12:00:01.123456"
+  },
+  "subkey with space": {
+    "type": "datetime",
+    "value": "2017-02-25T12:00:01.123456"
+  },
+  "table": {
+    "subDefinedFirst": {
+      "test": {
+        "type": "string",
+        "value": "this is valid TOML"
+      }
+    }
+  },
+  "time": {
+    "type": "datetime",
+    "value": "16:41:20"
+  },
+  "with_comments": {
+    "type": "string",
+    "value": "This value has two comments"
+  },
+  "without_comment": {
+    "type": "string",
+    "value": "This value has no comment"
+  }
+}

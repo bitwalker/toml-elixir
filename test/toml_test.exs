@@ -124,6 +124,11 @@ defmodule Toml.Test do
     assert {:ok, %{table: %{subtable: %{key: "another value"}}}} = Toml.decode_file(input, keys: :atoms)
   end
   
+  test "test.toml" do
+    input = Path.join([__DIR__, "fixtures", "test.toml"])
+    assert_toml_valid(input)
+  end
+  
   test "hard.toml" do
     input = Path.join([__DIR__, "fixtures", "hard.toml"])
     assert_toml_valid(input)

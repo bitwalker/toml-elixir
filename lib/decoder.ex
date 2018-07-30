@@ -259,10 +259,26 @@ defmodule Toml.Decoder do
         case Lexer.peek(lexer) do
           {:error, _, _, _} = err ->
             err
+          # Handle infinity/nan with leading sign
+          {:ok, {:alpha, _, "inf", _}} ->
+            Lexer.advance(lexer)
+            if type == ?\+ do
+              {:ok, :infinity}
+            else
+              {:ok, :negative_infinity}
+            end
+          {:ok, {:alpha, _, "nan", _}} ->
+            Lexer.advance(lexer)
+            if type == ?\+ do
+              {:ok, :nan}
+            else
+              {:ok, :negative_nan}
+            end
+          # Must be a signed integer or float
           {:ok, {:digits, _, d, _}} ->
-            # Appears to be integer or float, continue by accumulating
             Lexer.advance(lexer)
             maybe_integer(lexer, [d, type])
+          # Invalid
           {:ok, {type, skip, data, lines}} ->
             {:error, {:invalid_token, {type, data}}, skip, lines}
         end
@@ -306,7 +322,7 @@ defmodule Toml.Decoder do
               # Leading zeros not allowed
               {:error, {:invalid_integer, :leading_zero}, skip, lines}
             else
-              {:ok, String.to_integer(d)}
+              maybe_integer(lexer, [d])
             end
         end
       {:ok, {:digits, _, d, _}} ->
@@ -536,8 +552,9 @@ defmodule Toml.Decoder do
             {:ok, {type, skip, data, lines}} ->
               {:error, {:invalid_datetime_offset, {type, data}}, skip, lines}
           end
-        {:ok, {type, _, _, _}} when type in [:eof, :whitespace, :newline] ->
+        {:ok, {type, _, _, _} = token} when type in [:eof, :whitespace, :newline] ->
           # Just a local date/time
+          Lexer.push(lexer, token)
           {:ok, naive}
       end
     else
@@ -589,6 +606,12 @@ defmodule Toml.Decoder do
       {:ok, {false, _, _, _}} ->
         Lexer.advance(lexer)
         {:ok, false}
+      {:ok, {:alpha, _, "inf", _}} ->
+        Lexer.advance(lexer)
+        {:ok, :infinity}
+      {:ok, {:alpha, _, "nan", _}} ->
+        Lexer.advance(lexer)
+        {:ok, :nan}
       {:ok, {type, _, v, _}} when type in [:string, :multiline_string] ->
         Lexer.advance(lexer)
         {:ok, v}
@@ -644,6 +667,7 @@ defmodule Toml.Decoder do
   defp typeof(%NaiveDateTime{}), do: :datetime
   defp typeof(v) when is_list(v), do: :list
   defp typeof(v) when is_map(v), do: :map
+  defp typeof(v) when is_boolean(v), do: :boolean
   
   defp inline_table(lexer) do
     with {:ok, {?\{, skip, _, lines}} <- pop_skip(lexer, [:whitespace]),
@@ -742,6 +766,24 @@ defmodule Toml.Decoder do
     case Lexer.peek(lexer) do
       {:error, _, _, _} = err ->
         err
+      {:ok, {:whitespace, _, _, _}} ->
+        # The only allowed continuation now is a . followed by key char
+        case peek_skip(lexer, [:whitespace]) do
+          {:ok, {?., _, _, _}} ->
+            Lexer.advance(lexer)
+            case peek_skip(lexer, [:whitespace]) do
+              {:error, _, _, _} = err ->
+                err
+              {:ok, {type, _, _, _}} when type in [:digits, :alpha, :string] ->
+                key(lexer, "", [word | acc])
+              {:ok, {type, _, _, _}} when type in '-_' ->
+                key(lexer, "", [word | acc])
+              {:ok, {type, skip, data, lines}} ->
+                {:error, {:invalid_token, {type, data}}, skip, lines}
+            end
+          {:ok, _} ->
+            {:ok, Enum.reverse([word | acc])}
+        end
       {:ok, {type, _, s, _}} when type in [:digits, :alpha, :string] ->
         Lexer.advance(lexer)
         key(lexer, word <> s, acc)
@@ -750,7 +792,7 @@ defmodule Toml.Decoder do
         key(lexer, word <> iodata_to_str([type]), acc)
       {:ok, {?., _, _, _}} ->
         Lexer.advance(lexer)
-        case Lexer.peek(lexer) do
+        case peek_skip(lexer, [:whitespace]) do
           {:error, _, _, _} = err ->
             err
           {:ok, {type, _, _, _}} when type in [:digits, :alpha, :string] ->

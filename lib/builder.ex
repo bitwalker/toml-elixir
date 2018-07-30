@@ -207,14 +207,16 @@ defmodule Toml.Builder do
         # Pushing into table array
         {:ok, Map.put(ts, key, {:table_array, [value | items]})}
       exists when is_map(exists) and is_map(value) ->
-        Enum.reduce(value, exists, fn {k, v}, acc -> 
-          case push_key_into_table(acc, [k], v) do
-            {:ok, acc2} ->
-              acc2
-            {:error, _} = err ->
-              throw err
-          end
-        end)
+        result =
+          Enum.reduce(value, exists, fn {k, v}, acc -> 
+            case push_key_into_table(acc, [k], v) do
+              {:ok, acc2} ->
+                acc2
+              {:error, _} = err ->
+                throw err
+            end
+          end)
+        {:ok, result}
       _exists ->
         {:error, :key_exists}
     end
