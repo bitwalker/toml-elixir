@@ -1,8 +1,10 @@
 defmodule Toml do
   @moduledoc File.read!(Path.join([__DIR__, "..", "README.md"]))
   
-  @type opt :: {:keys, :atoms | :atoms! | :string}
+  @type key :: binary | atom | term
+  @type opt :: {:keys, :atoms | :atoms! | :string | (key -> term)}
              | {:filename, String.t}
+             | {:transforms, [module]}
   @type opts :: [opt]
 
   @doc """
@@ -20,6 +22,9 @@ defmodule Toml do
       * `:atoms!` - converts keys to atoms with `String.to_existing_atom/1`
       * `(key -> term)` - converts keys using the provided function
       
+    * `:transforms` - a list of custom transformations to apply to decoded TOML values,
+      see `c:Toml.Transform.transform/2` for details.
+      
   ## Decoding keys to atoms
 
   The `:atoms` option uses the `String.to_atom/1` call that can create atoms at runtime.
@@ -27,6 +32,18 @@ defmodule Toml do
   on user-controlled data. It is recommended that if you either avoid converting to atoms,
   by using `keys: :strings`, or require known keys, by using the `keys: :atoms!` option, 
   which will cause decoding to fail if the key is not an atom already in the atom table.
+  
+  ## Transformations
+  
+  You should rarely need custom datatype transformations, but in some cases it can be quite
+  useful. In particular if you want to transform things like IP addresses from their string
+  form to the Erlang address tuples used in most `:inet` APIs, a custom transform can ensure
+  that all addresses are usable right away, and that validation of those addresses is done as
+  part of decoding the document.
+  
+  Keep in mind that transforms add additional work to decoding, which may result in reduced 
+  performance, if you don't need the convenience, or the validation, deferring such conversions
+  until the values are used may be a better approach, rather than incurring the overhead during decoding.
   """
   @spec decode(binary) :: {:ok, map} | {:error, term}
   @spec decode(binary, opts) :: {:ok, map} | {:error, term}

@@ -19,6 +19,7 @@ spec at the link above (it is short and easy to read!).
   part of the test suite.
 - Decoder produces a map with values using the appropriate Elixir data types for
   representation
+- Supports extension via value transformers (see `Toml.Transform` docs for details)
 - Supports use as a configuration provider in Distillery 2.x+ (use TOML
   files for configuration!)
 - Decoder is written by hand to take advantage of various optimizations.
@@ -141,6 +142,80 @@ expected '\n', but got 'b' in nofile on line 2:
 
 :ok
 ```
+
+### Transforms
+
+Support for extending value conversions is provided by the `Toml.Transform`
+behavior. An example is shown below:
+
+Given the follwing TOML document:
+
+``` toml
+[servers.alpha]
+ip = "192.168.1.1"
+ports = [8080, 8081]
+
+[servers.beta]
+ip = "192.168.1.2"
+ports = [8082, 8083]
+```
+
+And the following modules:
+
+``` elixir
+defmodule Server do
+  defstruct [:ip, :ports]
+end
+
+defmodule IPStringToCharlist do
+  use Toml.Transform
+  
+  def transform(:ip, v) when is_binary(v) do
+    String.to_charlist(v)
+  end
+  def transform(_k, v), do: v
+end
+
+defmodule CharlistToIP do
+  use Toml.Transform
+  
+  def transform(:ip, v) when is_list(v) do
+    case :inet.parse_ipv4_address(v) do
+      {:ok, address} ->
+        address
+      {:error, reason} ->
+        {:error, {:invalid_ip_address, reason}}
+    end
+  end
+  def transform(:ip, v), do: {:error, {:invalid_ip_address, v}}
+  def transform(_k, v), do: v
+end
+
+defmodule ServerMapToList do
+  use Toml.Transform
+  
+  def transform(:servers, v) when is_map(v) do
+    for {name, server} <- v, do: struct(Server, Map.put(v, :name, name))
+  end
+  def transform(_k, v), do: v
+end
+```
+
+You can convert the TOML document to a more strongly-typed version using the
+above transforms like so:
+
+```elixir
+iex> transforms = [IPStringToCharlist, CharlistToIP, ServerMapToList]
+...> {:ok, result} = Toml.parse("example.toml", keys: :atoms, transforms: transforms)
+%{servers: [%Server{name: :alpha, ip: {192,168,1,1}}, ports: [8080, 8081] | _]}
+```
+
+The transforms given here are intended to show how they can be composed: they
+are applied in the order provided, and the document is transformed using a
+depth-first, bottom-up traversal. Put another way, you transform the leaves of
+the tree before the branches; as shown in the example above, this means the
+`:ip` key is converted to an address tuple before the `:servers` key is
+transformed into a list of `Server` structs.
 
 ## Using with Distillery
 

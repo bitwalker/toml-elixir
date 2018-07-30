@@ -2,6 +2,7 @@ defmodule Toml.Decoder do
   @moduledoc false
   
   alias Toml.Document
+  alias Toml.Builder
   alias Toml.Lexer
   
   @compile :inline_list_funs
@@ -16,14 +17,18 @@ defmodule Toml.Decoder do
     filename = Keyword.get(opts, :filename, "nofile")
     {:ok, lexer} = Lexer.new(bin)
     try do
-      with {:ok, %Document{} = doc} <- do_decode(lexer, bin, Document.new(opts)),
+      with {:ok, %Document{} = doc} <- do_decode(lexer, bin, Builder.new(opts)),
            {:ok, _} = ok <- Document.to_map(doc) do
         ok
       else
+        {:error, {:badarg, reason}} ->
+          raise ArgumentError, reason
         {:error, {:keys, :non_existing_atom} = reason} ->
           {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
         {:error, reason, skip, lines} ->
           {:error, {:invalid_toml, format_error(reason, bin, filename, skip, lines)}}
+        {:error, reason} ->
+          {:error, {:invalid_toml, reason}}
       end
     catch
       :throw, {:error, {:invalid_toml, reason}} = err when is_binary(reason) ->
@@ -40,28 +45,7 @@ defmodule Toml.Decoder do
   """
   @spec decode_stream(Enumerable.t, Toml.opts) :: {:ok, map} | {:error, term}
   def decode_stream(stream, opts) do
-    filename = Keyword.get(opts, :filename, "nofile")
-    bin = Enum.into(stream, <<>>)
-    {:ok, lexer} = Lexer.new(bin)
-    try do
-      with {:ok, %Document{} = doc} <- do_decode(lexer, bin, Document.new(opts)),
-           {:ok, _} = ok <- Document.to_map(doc) do
-        ok
-      else
-        {:error, {:keys, :non_existing_atom} = reason} ->
-          {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
-        {:error, reason, skip, lines} ->
-          filename = Path.relative_to_cwd(filename)
-          {:error, {:invalid_toml, format_error(reason, bin, filename, skip, lines)}}
-      end
-    catch
-      :throw, {:error, {:invalid_toml, reason}} = err when is_binary(reason) ->
-        err
-      :throw, {:error, {:invalid_toml, reason}} ->
-        {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
-    after
-      Lexer.stop(lexer)
-    end
+    decode(Enum.into(stream, <<>>), opts)
   end
   
   @doc """
@@ -76,9 +60,8 @@ defmodule Toml.Decoder do
         _ ->
           opts
       end
-    with {:ok, bin} <- File.read(path),
-         {:ok, _} = result <- decode(bin, opts) do
-      result
+    with {:ok, bin} <- File.read(path) do
+      decode(bin, opts)
     end
   end
   
@@ -153,7 +136,7 @@ defmodule Toml.Decoder do
   # Push comments on the comment stack
   defp handle_token(lexer, original, doc, :comment, skip, size, _lines) do
     comment = binary_part(original, skip-size, size)
-    do_decode(lexer, original, Document.push_comment(doc, comment))
+    do_decode(lexer, original, Builder.push_comment(doc, comment))
   end
   # Handle valid top-level entities
   # - array of tables
@@ -194,7 +177,7 @@ defmodule Toml.Decoder do
   defp handle_key(lexer, original, doc, key) do
     with {:ok, {?=, _, _, _}} <- pop_skip(lexer, [:whitespace]),
          {:ok, value} <- value(lexer),
-         {:ok, doc} <- Document.push_key(doc, key, value) do
+         {:ok, doc} <- Builder.push_key(doc, key, value) do
       # Make sure key/value pairs are separated by a newline
       case peek_skip(lexer, [:whitespace]) do
         {:error, _, _, _} = err ->
@@ -220,7 +203,7 @@ defmodule Toml.Decoder do
     with {:ok, {?\[, _, _, _}} <- pop_skip(lexer, [:whitespace]),
          {:ok, key, _line, _col} <- key(lexer),
          {:ok, {?\], _, _, _}} <- pop_skip(lexer, [:whitespace]),
-         {:ok, doc} <- Document.push_table(doc, key) do
+         {:ok, doc} <- Builder.push_table(doc, key) do
       # Make sure table opening is followed by newline
       case peek_skip(lexer, [:whitespace]) do
         {:error, _, _, _} = err ->
@@ -247,7 +230,7 @@ defmodule Toml.Decoder do
          {:ok, key, _, _} <- key(lexer),
          {_, {:ok, {?\], _, _, _}}} <- {:close, pop_skip(lexer, [:whitespace])},
          {_, {:ok, {?\], _, _, _}}} <- {:close, pop_skip(lexer, [:whitespace])},
-         {:ok, doc} <- Document.push_table_array(doc, key) do
+         {:ok, doc} <- Builder.push_table_array(doc, key) do
       # Make sure table opening is followed by newline
       case peek_skip(lexer, [:whitespace]) do
         {:error, _, _, _} = err ->
@@ -710,7 +693,7 @@ defmodule Toml.Decoder do
          {_, _, false, _, _} <- {:key_exists, key, Map.has_key?(acc, key), skip, lines},
          {:ok, {?=, _, _, _}} <- pop_skip(lexer, [:whitespace, :comments]),
          {:ok, value} <- value(lexer),
-         {_, {:ok, acc2}} <- {key, Document.push_key_into_table(acc, key, value)},
+         {_, {:ok, acc2}} <- {key, Builder.push_key_into_table(acc, key, value)},
          {:ok, {next, _, _, _}} <- peek_skip(lexer, [:whitespace, :comments]) do
       if next == ?, do
         Lexer.advance(lexer)
