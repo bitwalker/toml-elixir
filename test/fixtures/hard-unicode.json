@@ -1,0 +1,59 @@
+{
+  "the": {
+    "hard": {
+      "another_test_string": {
+        "type": "string",
+        "value": "§á₥è ƭλïñϱ, βúƭ ωïƭλ á ƨƭřïñϱ #"
+      },
+      "harder_test_string": {
+        "type": "string",
+        "value": " Âñδ ωλèñ \"'ƨ ářè ïñ ƭλè ƨƭřïñϱ, áℓôñϱ ωïƭλ # \""
+      },
+      "test_array": {
+        "type": "array",
+        "value": [
+          {
+            "type": "string",
+            "value": " # "
+          },
+          {
+            "type": "string",
+            "value": "] "
+          }
+        ]
+      },
+      "test_array2": {
+        "type": "array",
+        "value": [
+          {
+            "type": "string",
+            "value": "Éжƥèřï₥èñƭ #9 ωáƨ á ƨúççèƨƨ"
+          },
+          {
+            "type": "string",
+            "value": "Tèƨƭ #11 ]ƥřôƲèδ ƭλáƭ"
+          }
+        ]
+      },
+      "βïƭ#": {
+        "multi_line_array": {
+          "type": "array",
+          "value": [
+            {
+              "type": "string",
+              "value": "]"
+            }
+          ]
+        },
+        "ωλáƭ?": {
+          "type": "string",
+          "value": "Ýôú δôñ'ƭ ƭλïñƙ ƨô₥è úƨèř ωôñ'ƭ δô ƭλáƭ?"
+        }
+      }
+    },
+    "test_string": {
+      "type": "string",
+      "value": "Ýôú'ℓℓ λáƭè ₥è áƒƭèř ƭλïƨ - #"
+    }
+  }
+}

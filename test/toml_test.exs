@@ -124,7 +124,27 @@ defmodule Toml.Test do
     assert {:ok, %{table: %{subtable: %{key: "another value"}}}} = Toml.decode_file(input, keys: :atoms)
   end
   
+  test "hard.toml" do
+    input = Path.join([__DIR__, "fixtures", "hard.toml"])
+    assert_toml_valid(input)
+  end
+  
+  test "hard-unicode.toml" do
+    input = Path.join([__DIR__, "fixtures", "hard-unicode.toml"])
+    assert_toml_valid(input)
+  end
+  
+  test "hard.toml (invalid variants)" do
+    for input <- Path.wildcard(Path.join([__DIR__, "fixtures", "hard-invalid*.toml"])) do
+      assert {:error, {:invalid_toml, _}} = decode_file(input)
+    end
+  end
+  
   defp decode(str) when is_binary(str) do
     Toml.decode(str)
+  end
+  
+  defp decode_file(path) when is_binary(path) do
+    Toml.decode_file(path)
   end
 end
