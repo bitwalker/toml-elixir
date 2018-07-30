@@ -9,7 +9,9 @@ defmodule Toml.Provider do
 
       release :myapp do
         # ...snip...
-        set config_providers: [{Toml.Provider, ["${XDG_CONFIG_DIR}/myapp.toml"]}]
+        set config_providers: [
+          {Toml.Provider, [path: "${XDG_CONFIG_DIR}/myapp.toml", transforms: [...]]}
+        ]
       end
 
   This will result in `Toml.Provider` being invoked during boot, at which point it
@@ -23,12 +25,30 @@ defmodule Toml.Provider do
   keys at the root of the document are tables which correspond to applications
   which need to be configured. If it encounters keys at the root of the document
   which are not tables, they are ignored.
+  
+  ## Options
+
+  The same options that `Toml.parse/2` accepts are able to be provided to `Toml.Provider`,
+  but there are two main differences:
+
+    * `:path` (required) - sets the path to the TOML file to load config from
+    * `:keys` - defaults to `:atoms`, but can be set to `:atoms!` if desired, all other 
+      key types are ignored, as it results in an invalid config structure
+
   """
   
   @doc false
-  def init([path]) do
+  def init([opts]) do
+    path = Keyword.fetch!(opts, :path)
+    opts =
+      case Keyword.get(opts, :keys, :atoms) do
+        a when a in [:atoms, :atoms!] ->
+          opts
+        _ ->
+          Keyword.put(opts, :keys, :atoms)
+      end
     with {:ok, expanded} <- expand_path(path),
-         map = Toml.decode_file!(expanded, keys: :atom),
+         map = Toml.decode_file!(expanded, opts),
          keyword when is_list(keyword) <- to_keyword(map) do
       persist(keyword)
     else
@@ -65,20 +85,14 @@ defmodule Toml.Provider do
   # At the top level, convert the map to a keyword list of keyword lists
   # Keys with no children (i.e. keys which are not tables) are dropped
   defp to_keyword(map) when is_map(map) do
-    for {k, v} <- map, 
-        k2 = String.to_atom(k), 
-        v2 = to_keyword2(v), 
-        is_list(v2), into: [] do
-      {k2, v2}
+    for {k, v} <- map, v2 = to_keyword2(v), is_list(v2), into: [] do
+      {k, v2}
     end
   end
   # For all other values, convert tables to keywords
   defp to_keyword2(map) when is_map(map) do
-    for {k, v} <- map, 
-        k2 = String.to_atom(k), 
-        v2 = to_keyword2(v), 
-        into: [] do
-      {k2, v2}
+    for {k, v} <- map, v2 = to_keyword2(v), into: [] do
+      {k, v2}
     end
   end
   # And leave all other values untouched

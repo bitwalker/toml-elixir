@@ -225,7 +225,9 @@ to your `rel/config.exs`:
 ``` elixir
 release :myapp do
   # ...snip...
-  set config_providers: [{Toml.Provider, ["${XDG_CONFIG_DIR}/myapp.toml"]}]
+  set config_providers: [
+    {Toml.Provider, [path: "${XDG_CONFIG_DIR}/myapp.toml", transforms: [...]]}
+  ]
 end
 ```
 
@@ -235,6 +237,10 @@ found, or is not accessible, the provider will raise an error, and the boot
 sequence will terminate unsuccessfully. If it succeeds, it persists settings in
 the file to the application environment (i.e. you access it via
 `Application.get_env/2`).
+
+You can pass the same options in the arguments list for `Toml.Provider` as you
+can to `Toml.parse/2`, but `:path` is required, and `:keys` only supports
+`:atoms` and `:atoms!` values.
 
 The config provider expects a certain format to the TOML file, namely that keys
 at the root of the document correspond to applications which need to be configured.
