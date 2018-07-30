@@ -16,7 +16,8 @@ defmodule Toml.MixProject do
         bench: :bench, 
         "bench.decoder": :bench,
         "bench.lexer": :bench, 
-        docs: :docs
+        docs: :docs,
+        "hex.publish": :docs
       ],
       dialyzer: dialyzer(),
       elixirc_paths: elixirc_paths(Mix.env),
