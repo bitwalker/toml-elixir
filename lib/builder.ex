@@ -77,13 +77,18 @@ defmodule Toml.Builder do
   end
   def push_key(%Document{keys: ks} = doc, [key], value) when is_map(value) do
     # Pushing an inline table
-    keypath = [key]
-    case push_key_into_table(ks, [key], value) do
+    keypath =
+      case doc.open_table do
+        nil ->
+          [key]
+        opened ->
+          opened ++ [key]
+      end
+    case push_key_into_table(ks, keypath, value) do
       {:ok, ks} ->
         doc
         |> keys(ks)
         |> comment(keypath)
-        |> close()
         |> to_result()
       {:error, :key_exists} ->
         key_exists!(keypath)
@@ -130,12 +135,18 @@ defmodule Toml.Builder do
   end
   def push_key(%Document{keys: ks} = doc, keypath, value) when is_list(keypath) and is_map(value) do
     # Pushing a multi-part key with an inline table value
+    keypath =
+      case doc.open_table do
+        nil ->
+          keypath
+        opened ->
+          opened ++ keypath
+      end
     case push_key_into_table(ks, keypath, value) do
       {:ok, ks} ->
         doc
         |> keys(ks)
         |> comment(keypath)
-        |> open(keypath)
         |> to_result()
       {:error, :key_exists} ->
         key_exists!(keypath)
@@ -143,13 +154,18 @@ defmodule Toml.Builder do
   end
   def push_key(%Document{keys: ks} = doc, keypath, value) when is_list(keypath) do
     # Pushing a multi-part key with a plain value
+    keypath =
+      case doc.open_table do
+        nil ->
+          keypath
+        opened ->
+          opened ++ keypath
+      end
     case push_key_into_table(ks, keypath, value) do
       {:ok, ks} ->
-        opening = Enum.take(keypath, length(keypath) - 1)
         doc
         |> keys(ks)
         |> comment(keypath)
-        |> open(opening)
         |> to_result()
       {:error, :key_exists} ->
         key_exists!(keypath)
