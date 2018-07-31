@@ -66,6 +66,7 @@ defmodule Toml.MixProject do
   
   defp aliases(_env) do
     [
+      "compile-check": ["compile", "dialyzer --halt-exit-status"],
       clean: ["clean", &clean/1],
       bench: ["bench.decoder", "bench.lexer"],
       "bench.decoder": ["run bench/bench.decoder.exs"],
@@ -79,7 +80,8 @@ defmodule Toml.MixProject do
 
   defp dialyzer do
     [
-      ignore_warnings: "dialyzer.ignore"
+      ignore_warnings: "dialyzer.ignore",
+      flags: [:error_handling, :underspecs]
     ]
   end
 

@@ -2,10 +2,14 @@ sudo: false
 language: elixir
 elixir:
   - 1.6
+  - 1.7
 otp_release:
   - 21.0
+env:
+  - MIX_ENV=test
 script:
-  - "MIX_ENV=test mix do deps.get, test"
+  - "mix do deps.get, compile-check"
+  - "mix test"
 notifications:
   recipients:
     - paulschoenfelder@gmail.com
