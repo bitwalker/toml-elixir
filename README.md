@@ -67,6 +67,12 @@ the same base type (e.g. integer and string respectively in the examples given).
 |-------|-------|
 | String | String.t (binary) |
 | Integer | integer |
+| inf | :infinity |
+| +inf | :infinity |
+| -inf | :negative_infinity |
+| nan | :nan |
+| +nan | :nan |
+| -nan | :negative_nan |
 | Boolean | boolean |
 | Offset Date-Time | DateTime.t |
 | Local Date-Time | NaiveDateTime.t |
@@ -75,6 +81,29 @@ the same base type (e.g. integer and string respectively in the examples given).
 | Array | list |
 | Table | map |
 | Table Array | list(map) |
+
+## Implementation-specific Behaviors
+
+Certain features of TOML have implementation-specific behavior:
+
+- `-inf`, `inf`, and `+inf` are all valid infinity values in TOML.
+  In Erlang/Elixir, these don't have exact representations. Instead, by convention, 
+  `:infinity` is used for positive infinity, as atoms are always larger than integers
+  when using comparison operators, so `:infinity > <any integer>` will always be true.
+  However, negative infinity cannot be represented, as numbers are always considered smaller
+  than every other type in term comparisons. Instead, we represent it with `:negative_infinity`,
+  so that the type information is not lost, but you must be careful to deal with it specifically
+  in comparisons/sorting/etc.
+- `-nan`, `nan`, and `+nan` are all valid NaN (not a number) values in TOML. In Erlang/Elixir,
+  NaN is traditionally represented with `:nan`, but there is no representation for negative NaN,
+  and no API actually produces `:nan`, instead invalid numbers typically raise errors, in the typical 
+  spirit of "let it crash" in the face of errors. For purposes of preserving type information though,
+  we use the `:nan` convention, and `:negative_nan` for -NaN. You will need to take care to deal with
+  these values manually if the values need to be preserved.
+- The maximum precision of times in the various time types is microseconds (i.e. precision to six decimal places),
+  if you provide higher precision values (i.e. nanoseconds), the extra precision will be lost.
+- Hex, octal, and binary numbers are converted to integers, so serializing those values after decoding
+  them from a TOML document will be in their decimal representation.
 
 ## Example Usage
 
