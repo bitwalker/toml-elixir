@@ -1,23 +1,23 @@
 defmodule Toml.Transform do
   @moduledoc """
   Defines the behavior for custom transformations of decoded TOML values.
-  
+
   See the documentation for `c:transform/2` for more details.
   """
-  
+
   @type t :: module
   @type key :: binary | atom | term
   @type keypath :: [binary] | [atom] | [term]
-  @type value :: %{key => value}
-               | [value]
-               | number
-               | binary
-               | NaiveDateTime.t
-               | DateTime.t
-               | Date.t
-               | Time.t
+  @type value ::
+          %{key => value}
+          | [value]
+          | number
+          | binary
+          | NaiveDateTime.t()
+          | DateTime.t()
+          | Date.t()
+          | Time.t()
 
-  
   @doc """
   This function is invoked for every key/value pair in the document, in a depth-first,
   bottom-up, traversal of the document.
@@ -31,14 +31,14 @@ defmodule Toml.Transform do
   ## Example
 
   An example transformation would be the conversion of tables of a certain shape to a known struct value.
-  
+
   The struct:
 
       defmodule Server do
         defstruct [:name, :ip, :ports]
       end
       
-  
+
   TOML which contains a table of this shape:
 
       [servers.alpha]
@@ -97,8 +97,7 @@ defmodule Toml.Transform do
 
   """
   @callback transform(key, value) :: {:error, term} | term
-  
-  
+
   # Given a list of transform functions, compose them into a single transformation pass
   @doc false
   def compose(mods) when is_list(mods) do
@@ -108,11 +107,12 @@ defmodule Toml.Transform do
   # The first transform in the list does not require composition
   defp compose_transforms(mod, nil), do: &mod.transform/2
   # All subsequent transforms are composed with the previous
-  defp compose_transforms(mod, acc) when is_atom(mod) and is_function(acc) do 
-    fn k, v -> 
+  defp compose_transforms(mod, acc) when is_atom(mod) and is_function(acc) do
+    fn k, v ->
       case acc.(k, v) do
         {:error, _} = err ->
-          throw err
+          throw(err)
+
         v2 ->
           mod.transform(k, v2)
       end

@@ -11,17 +11,17 @@ defmodule Toml.MixProject do
       description: "An implementation of TOML for Elixir projects",
       package: package(),
       deps: deps(),
-      aliases: aliases(Mix.env),
+      aliases: aliases(Mix.env()),
       preferred_cli_env: [
-        bench: :bench, 
+        bench: :bench,
         "bench.decoder": :bench,
-        "bench.lexer": :bench, 
+        "bench.lexer": :bench,
         docs: :docs,
         "hex.publish": :docs
       ],
       dialyzer: dialyzer(),
-      elixirc_paths: elixirc_paths(Mix.env),
-      escript: escript(Mix.env)
+      elixirc_paths: elixirc_paths(Mix.env()),
+      escript: escript(Mix.env())
     ]
   end
 
@@ -39,7 +39,7 @@ defmodule Toml.MixProject do
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:benchee, "~> 0.13", only: [:bench]},
       {:benchee_html, "~> 0.5", only: [:bench]},
-      {:jason, "~> 1.0", only: [:test, :bench]},
+      {:jason, "~> 1.0", only: [:test, :bench]}
       # For benchmarking, though none of these libraries work at this point
       # {:tomlex, "~> 0.0.5", only: [:bench]},
       # {:toml_elixir, "~> 2.0.1", only: [:bench]},
@@ -49,12 +49,14 @@ defmodule Toml.MixProject do
   end
 
   defp package do
-    [files: ["lib", "mix.exs", "README.md", "LICENSE"],
-     maintainers: ["Paul Schoenfelder"],
-     licenses: ["Apache 2.0"],
-     links: %{"GitHub" => "https://github.com/bitwalker/toml-elixir"}]
+    [
+      files: ["lib", "mix.exs", "README.md", "LICENSE"],
+      maintainers: ["Paul Schoenfelder"],
+      licenses: ["Apache 2.0"],
+      links: %{"GitHub" => "https://github.com/bitwalker/toml-elixir"}
+    ]
   end
-  
+
   defp escript(:test) do
     [
       main_module: Toml.CLI,
@@ -62,15 +64,16 @@ defmodule Toml.MixProject do
       path: Path.join([__DIR__, "bin", "toml"])
     ]
   end
+
   defp escript(_), do: nil
-  
+
   defp aliases(_env) do
     [
       "compile-check": ["compile", "dialyzer --halt-exit-status"],
       clean: ["clean", &clean/1],
       bench: ["bench.decoder", "bench.lexer"],
       "bench.decoder": ["run bench/bench.decoder.exs"],
-      "bench.lexer": ["run bench/bench.lexer.exs"],
+      "bench.lexer": ["run bench/bench.lexer.exs"]
     ]
   end
 
@@ -87,6 +90,7 @@ defmodule Toml.MixProject do
 
   defp clean(_args) do
     toml = Path.join([__DIR__, "bin", "toml"])
+
     if File.exists?(toml) do
       _ = File.rm(toml)
     end

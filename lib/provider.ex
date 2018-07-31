@@ -4,7 +4,7 @@ defmodule Toml.Provider do
   behavior, so that TOML files can be used for configuration in releases.
 
   ## Usage
-  
+
   Add the following to your `rel/config.exs`
 
       release :myapp do
@@ -25,7 +25,7 @@ defmodule Toml.Provider do
   keys at the root of the document are tables which correspond to applications
   which need to be configured. If it encounters keys at the root of the document
   which are not tables, they are ignored.
-  
+
   ## Options
 
   The same options that `Toml.parse/2` accepts are able to be provided to `Toml.Provider`,
@@ -36,17 +36,20 @@ defmodule Toml.Provider do
       key types are ignored, as it results in an invalid config structure
 
   """
-  
+
   @doc false
   def init(opts) when is_list(opts) do
     path = Keyword.fetch!(opts, :path)
+
     opts =
       case Keyword.get(opts, :keys) do
         a when a in [:atoms, :atoms!] ->
           opts
+
         _ ->
           Keyword.put(opts, :keys, :atoms)
       end
+
     with {:ok, expanded} <- expand_path(path),
          map = Toml.decode_file!(expanded, opts),
          keyword when is_list(keyword) <- to_keyword(map) do
@@ -56,18 +59,20 @@ defmodule Toml.Provider do
         exit(reason)
     end
   end
-  
+
   @doc false
   def get([app | keypath]) do
     config = Application.get_all_env(app)
+
     case get_in(config, keypath) do
       nil ->
         nil
+
       val ->
         {:ok, val}
     end
   end
-  
+
   defp persist(keyword) when is_list(keyword) do
     # For each app
     for {app, app_config} <- keyword do
@@ -81,7 +86,7 @@ defmodule Toml.Provider do
       end
     end
   end
-  
+
   # At the top level, convert the map to a keyword list of keyword lists
   # Keys with no children (i.e. keys which are not tables) are dropped
   defp to_keyword(map) when is_map(map) do
@@ -89,15 +94,17 @@ defmodule Toml.Provider do
       {k, v2}
     end
   end
+
   # For all other values, convert tables to keywords
   defp to_keyword2(map) when is_map(map) do
     for {k, v} <- map, v2 = to_keyword2(v), into: [] do
       {k, v2}
     end
   end
+
   # And leave all other values untouched
   defp to_keyword2(term), do: term
-  
+
   defp deep_merge(a, b) when is_list(a) and is_list(b) do
     if Keyword.keyword?(a) and Keyword.keyword?(b) do
       Keyword.merge(a, b, &deep_merge/3)
@@ -105,6 +112,7 @@ defmodule Toml.Provider do
       b
     end
   end
+
   defp deep_merge(_k, a, b) when is_list(a) and is_list(b) do
     if Keyword.keyword?(a) and Keyword.keyword?(b) do
       Keyword.merge(a, b, &deep_merge/3)
@@ -112,39 +120,49 @@ defmodule Toml.Provider do
       b
     end
   end
+
   defp deep_merge(_k, a, b) when is_map(a) and is_map(b) do
     Map.merge(a, b, &deep_merge/3)
   end
+
   defp deep_merge(_k, _a, b), do: b
-  
+
   def expand_path(path) when is_binary(path) do
     case expand_path(path, <<>>) do
       {:ok, p} ->
         {:ok, Path.expand(p)}
+
       {:error, _} = err ->
         err
     end
   end
-  defp expand_path(<<>>, acc), 
+
+  defp expand_path(<<>>, acc),
     do: {:ok, acc}
+
   defp expand_path(<<?$, ?\{, rest::binary>>, acc) do
     case expand_var(rest) do
       {:ok, var, rest} ->
         expand_path(rest, acc <> var)
+
       {:error, _} = err ->
         err
     end
   end
+
   defp expand_path(<<c::utf8, rest::binary>>, acc) do
     expand_path(rest, <<acc::binary, c::utf8>>)
   end
-  
-  defp expand_var(bin), 
+
+  defp expand_var(bin),
     do: expand_var(bin, <<>>)
-  defp expand_var(<<>>, _acc), 
+
+  defp expand_var(<<>>, _acc),
     do: {:error, :unclosed_var_expansion}
-  defp expand_var(<<?\}, rest::binary>>, acc), 
+
+  defp expand_var(<<?\}, rest::binary>>, acc),
     do: {:ok, System.get_env(acc) || "", rest}
+
   defp expand_var(<<c::utf8, rest::binary>>, acc) do
     expand_var(rest, <<acc::binary, c::utf8>>)
   end
