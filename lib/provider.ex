@@ -38,10 +38,10 @@ defmodule Toml.Provider do
   """
   
   @doc false
-  def init([opts]) do
+  def init(opts) when is_list(opts) do
     path = Keyword.fetch!(opts, :path)
     opts =
-      case Keyword.get(opts, :keys, :atoms) do
+      case Keyword.get(opts, :keys) do
         a when a in [:atoms, :atoms!] ->
           opts
         _ ->
@@ -98,12 +98,24 @@ defmodule Toml.Provider do
   # And leave all other values untouched
   defp to_keyword2(term), do: term
   
-  defp deep_merge(a, b) do
-    Keyword.merge(a, b, &deep_merge/3)
+  defp deep_merge(a, b) when is_list(a) and is_list(b) do
+    if Keyword.keyword?(a) and Keyword.keyword?(b) do
+      Keyword.merge(a, b, &deep_merge/3)
+    else
+      b
+    end
   end
-  defp deep_merge(_k, a, b) do
-    Keyword.merge(a, b, &deep_merge/3)
+  defp deep_merge(_k, a, b) when is_list(a) and is_list(b) do
+    if Keyword.keyword?(a) and Keyword.keyword?(b) do
+      Keyword.merge(a, b, &deep_merge/3)
+    else
+      b
+    end
   end
+  defp deep_merge(_k, a, b) when is_map(a) and is_map(b) do
+    Map.merge(a, b, &deep_merge/3)
+  end
+  defp deep_merge(_k, _a, b), do: b
   
   def expand_path(path) when is_binary(path) do
     case expand_path(path, <<>>) do
