@@ -69,7 +69,11 @@ defmodule Toml.MixProject do
 
   defp aliases(_env) do
     [
-      "compile-check": ["compile", "dialyzer --halt-exit-status"],
+      "compile-check": [
+        "compile",
+        "dialyzer --halt-exit-status",
+        "format --check-formatted --dry-run"
+      ],
       clean: ["clean", &clean/1],
       bench: ["bench.decoder", "bench.lexer"],
       "bench.decoder": ["run bench/bench.decoder.exs"],
