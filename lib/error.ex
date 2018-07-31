@@ -41,9 +41,9 @@ defmodule Toml.Error do
   def format_reason({:unclosed_table_array_name, token}),
     do: "unclosed table array name at #{format_token(token)}"
   def format_reason({:unclosed_array, {oline, ocol}}),
-    do: "unclosed array started at #{oline}:#{ocol}"
+    do: "unclosed array started on line #{oline}, column #{ocol}"
   def format_reason({:unclosed_inline_table, {oline, ocol}}),
-    do: "unclosed inline table started at #{oline}:#{ocol}"
+    do: "unclosed inline table started on line #{oline}, column #{ocol}"
   def format_reason(:unclosed_quote),
     do: "unclosed quoted string"
   def format_reason(:unexpected_newline),
