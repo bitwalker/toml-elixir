@@ -48,15 +48,18 @@ defmodule Toml.Lexer.String do
   end
   # Disallow any control chars in single quoted literals
   defp lex_literal(:single, <<c::utf8, _::binary>>, skip, _acc, lines) when (c >= 0 and c <= 31) or c == 127,
-    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip, lines}
+    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip+1, lines}
   # Disallow any control chars in single quoted literals, EXCEPT \t in multi-line literals
   defp lex_literal(:multi, <<?\t, rest::binary>>, skip, acc, lines),
     do: lex_literal(:multi, rest, skip+1, [?\t | acc], lines)
   defp lex_literal(:multi, <<c::utf8, _::binary>>, skip, _acc, lines) when (c >= 0 and c <= 31) or c == 127,
-    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip, lines}
+    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip+1, lines}
   # Eat next character in string
   defp lex_literal(type, <<c::utf8, rest::binary>>, skip, acc, lines), 
     do: lex_literal(type, rest, skip+1, [c | acc], lines)
+  # Invalid byte sequence (i.e. invalid unicode)
+  defp lex_literal(_type, <<c, _::binary>>, skip, _acc, lines),
+    do: {:error, {:invalid_unicode, <<c>>}, skip+1, lines}
   
   defp lex_quoted(_type, <<>>, skip, _acc, lines),
     do: {:error, :unclosed_quote, skip, lines}
@@ -111,18 +114,18 @@ defmodule Toml.Lexer.String do
     lex_quoted(type, rest, 2+skip+skip2, [char | acc], lines)
   catch
     :throw, {:invalid_unicode, _} = reason ->
-      {:error, reason, skip, lines}
+      {:error, reason, skip+1, lines}
   end
   defp lex_quoted(type, <<?\\, ?U, rest::binary>>, skip, acc, lines) do
     {char, rest, skip2} = unescape_unicode(?U, rest)
     lex_quoted(type, rest, 2+skip+skip2, [char | acc], lines)
   catch
     :throw, {:invalid_unicode, _} = reason ->
-      {:error, reason, skip, lines}
+      {:error, reason, skip+1, lines}
   end
   # Bad escape
   defp lex_quoted(_type, <<?\\, char::utf8, _::binary>>, skip, _acc, lines) do
-    {:error, {:invalid_escape, <<?\\, char::utf8>>}, skip, lines}
+    {:error, {:invalid_escape, <<?\\, char::utf8>>}, skip+1, lines}
   end
   # Closing quotes
   defp lex_quoted(:multi, <<?\", ?\", ?\", rest::binary>>, skip, acc, lines) do
@@ -135,11 +138,13 @@ defmodule Toml.Lexer.String do
   end
   # Disallow any unescaped control chars in quoted strings
   defp lex_quoted(_type, <<c::utf8, _::binary>>, skip, _acc, lines) when (c >= 0 and c <= 31) or c == 127,
-    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip, lines}
+    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip+1, lines}
   # Eat next character in string
   defp lex_quoted(type, <<c::utf8, rest::binary>>, skip, acc, lines) do
     lex_quoted(type, rest, skip+1, [c | acc], lines)
   end
+  defp lex_quoted(_type, <<c, _::binary>>, skip, _acc, lines),
+    do: {:error, {:invalid_unicode, <<c>>}, skip+1, lines}
 
   defp trim_newline(<<?\r, ?\n, rest::binary>>, skip, lines), do: {rest, skip+2, lines+1}
   defp trim_newline(<<?\n, rest::binary>>, skip, lines), do: {rest, skip+1, lines+1}

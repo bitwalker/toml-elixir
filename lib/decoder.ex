@@ -127,6 +127,9 @@ defmodule Toml.Decoder do
   defp seek_to_eol(<<_::utf8, rest::binary>>, len) do
     seek_to_eol(rest, len+1)
   end
+  # Handles invalid byte sequences (i.e. invalid unicode)
+  # Considers the invalid byte as EOL so context can still be shown
+  defp seek_to_eol(<<_, _rest::binary>>, len), do: len
   
   # Skip top-level whitespace and newlines
   defp handle_token(lexer, original, doc, :whitespace, _skip, _data, _lines),
