@@ -248,6 +248,8 @@ defmodule Toml.Lexer do
     {:ok, rest, {:digits, skip, bin, lines}}
   end
     
+  defp lex_hex(<<c::utf8, ?_, d::utf8, rest::binary>>, skip, acc, lines) when is_hex(c) and is_hex(d),
+    do: lex_hex(rest, skip+3, [d, c | acc], lines)
   defp lex_hex(<<c::utf8, rest::binary>>, skip, acc, lines) when is_hex(c),
     do: lex_hex(rest, skip+1, [c | acc], lines)
   defp lex_hex(rest, skip, acc, lines) do
@@ -255,6 +257,8 @@ defmodule Toml.Lexer do
     {:ok, rest, {:hex, skip, bin, lines}}
   end
 
+  defp lex_octal(<<c::utf8, ?_, d::utf8, rest::binary>>, skip, acc, lines) when is_octal(c) and is_octal(d),
+    do: lex_octal(rest, skip+3, [d, c | acc], lines)
   defp lex_octal(<<c::utf8, rest::binary>>, skip, acc, lines) when is_octal(c),
     do: lex_octal(rest, skip+1, [c | acc], lines)
   defp lex_octal(rest, skip, acc, lines) do
@@ -262,6 +266,8 @@ defmodule Toml.Lexer do
     {:ok, rest, {:octal, skip, bin, lines}}
   end
 
+  defp lex_binary(<<c::utf8, ?_, d::utf8, rest::binary>>, skip, acc, lines) when is_bin(c) and is_bin(d),
+    do: lex_binary(rest, skip+3, [d, c | acc], lines)
   defp lex_binary(<<c::utf8, rest::binary>>, skip, acc, lines) when is_bin(c),
     do: lex_binary(rest, skip+1, [c | acc], lines)
   defp lex_binary(rest, skip, acc, lines) do
