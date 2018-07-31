@@ -695,13 +695,13 @@ defmodule Toml.Decoder do
         Lexer.advance(lexer)
         accumulate_array_elements(lexer, [value | acc])
       else
-        {:ok, [value | acc]}
+        {:ok, Enum.reverse([value | acc])}
       end
     else
       {:error, _, _, _} = err ->
         err
       {:trailing_comma, true} ->
-        {:ok, acc}
+        {:ok, Enum.reverse(acc)}
     end
   end
   
