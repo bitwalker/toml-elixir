@@ -182,6 +182,34 @@ defmodule Toml.Builder do
   # exist, instead it creates a new table (map) at the level needed, and continues
   # pushing the key into this new table
   @doc false
+  def push_key_into_table({:table_array, array}, [key], {:table_array, _} = value) do
+    case array do
+      [] ->
+        {:ok, {:table_array, [Map.put(%{}, key, value)]}}
+      [h | t] when is_map(h) ->
+        case Map.get(h, key) do
+          nil ->
+            {:ok, {:table_array, [Map.put(h, key, value) | t]}}
+          {:table_array, items} ->
+            {:ok, {:table_array, [Map.put(h, key, {:table_array, [%{} | items]}) | t]}}
+          _ ->
+            {:error, :key_exists}
+        end
+    end
+  end
+  def push_key_into_table({:table_array, array}, [key], value) when is_map(value) do
+    case array do
+      [] ->
+        {:ok, {:table_array, [Map.put(%{}, key, value)]}}
+      [h | t] when is_map(h) ->
+        case Map.get(h, key) do
+          nil ->
+            {:ok, {:table_array, [Map.put(h, key, value) | t]}}
+          _ ->
+            {:error, :key_exists}
+        end
+    end
+  end
   def push_key_into_table({:table_array, array}, keypath, value) when is_map(value) do
     case array do
       [] ->
