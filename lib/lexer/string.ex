@@ -37,15 +37,6 @@ defmodule Toml.Lexer.String do
     do: lex_literal(type, rest, skip+2, [?\n | acc], lines+1)
   defp lex_literal(type, <<?\n, rest::binary>>, skip, acc, lines),
     do: lex_literal(type, rest, skip+1, [?\n | acc], lines+1)
-  # Allow escaping newlines in multi-ine strings
-  defp lex_literal(:multi, <<?\\, ?\r, ?\n, rest::binary>>, skip, acc, lines) do
-    {rest, skip, lines} = trim_whitespace(:literal, rest, skip+3, lines+1)
-    lex_literal(:multi, rest, skip, acc, lines)
-  end
-  defp lex_literal(:multi, <<?\\, ?\n, rest::binary>>, skip, acc, lines) do
-    {rest, skip, lines} = trim_whitespace(:literal, rest, skip+2, lines+1)
-    lex_literal(:multi, rest, skip, acc, lines)
-  end
   # Closing quotes
   defp lex_literal(:single, <<?\', rest::binary>>, skip, acc, lines) do
     bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
