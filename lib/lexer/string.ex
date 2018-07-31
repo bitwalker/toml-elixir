@@ -107,14 +107,14 @@ defmodule Toml.Lexer.String do
   defp lex_quoted(type, <<?\\, ?\", rest::binary>>, skip, acc, lines), 
     do: lex_quoted(type, rest, skip+2, [?\" | acc], lines)
   defp lex_quoted(type, <<?\\, ?u, rest::binary>>, skip, acc, lines) do
-    {char, rest, skip2} = unescape_unicode(rest)
+    {char, rest, skip2} = unescape_unicode(?u, rest)
     lex_quoted(type, rest, 2+skip+skip2, [char | acc], lines)
   catch
     :throw, {:invalid_unicode, _} = reason ->
       {:error, reason, skip, lines}
   end
   defp lex_quoted(type, <<?\\, ?U, rest::binary>>, skip, acc, lines) do
-    {char, rest, skip2} = unescape_unicode(rest)
+    {char, rest, skip2} = unescape_unicode(?U, rest)
     lex_quoted(type, rest, 2+skip+skip2, [char | acc], lines)
   catch
     :throw, {:invalid_unicode, _} = reason ->
@@ -157,7 +157,36 @@ defmodule Toml.Lexer.String do
   defp trim_whitespace(_type, rest, skip, lines), 
     do: {rest, skip, lines}
   
-  defp unescape_unicode(<<n::4-binary, bin::binary>>) do
+  def unescape_unicode(?U, <<n::8-binary, bin::binary>>) do
+    char =
+      case :erlang.binary_to_integer(n, 16) do
+        u when u <= 0x007F ->
+          <<u>>
+        u when 0x0080 <= u and u <= 0x07FF ->
+          u1 = div(u, 64) + 192
+          u2 = mod(u, 64) + 128
+          <<u1, u2>>
+        u when (0x0080 <= u and u <= 0xD7FF) or (0xE000 <= u and u <= 0xFFFF) ->
+          u1 = div(u, 4096) + 224
+          u2 = div(mod(u, 4096), 64) + 128
+          u3 = mod(u, 64) + 128
+          <<u1, u2, u3>>
+        u ->
+          u1 = div(u, 262_144) + 240
+          u2 = div(mod(u, 262_144), 4096) + 128
+          u3 = div(mod(u, 4096), 64) + 128
+          u4 = mod(u, 64) + 128
+          <<u1, u2, u3, u4>>
+      end
+    # Check that we have a valid utf8 encoding
+    case char do
+      <<_::utf8>> ->
+        {char, bin, 8}
+      _ ->
+        bad_unicode!(char)
+    end
+  end
+  def unescape_unicode(?u, <<n::4-binary, bin::binary>>) do
     case :erlang.binary_to_integer(n, 16) do
       high when 0xD800 <= high and high <= 0xDBFF ->
         # surrogate pair
@@ -183,15 +212,13 @@ defmodule Toml.Lexer.String do
     :error, :badarg -> 
       bad_unicode!(n)
   end
-  defp unescape_unicode(<<c, _::binary>>) do
+  def unescape_unicode(_type, <<c, _::binary>>) do
     bad_unicode!(<<c>>)
   end
   
-  defp bad_unicode!(byte) do
-    if String.printable?(byte) do
-      throw {:invalid_unicode, "#{inspect byte, base: :hex} ('#{byte}')"}
-    else
-      throw {:invalid_unicode, "#{inspect byte, base: :hex}"}
-    end
-  end
+  defp bad_unicode!(byte), do: throw({:invalid_unicode, byte})
+  
+  defp mod(x, y) when x > 0, do: rem(x, y)
+  defp mod(x, y) when x < 0, do: y + rem(x, y)
+  defp mod(0, _), do: 0
 end
