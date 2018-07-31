@@ -4,8 +4,11 @@ defmodule Toml do
   @type key :: binary | atom | term
   @type opt :: {:keys, :atoms | :atoms! | :string | (key -> term)}
              | {:filename, String.t}
-             | {:transforms, [module]}
+             | {:transforms, [Toml.Transform.t]}
   @type opts :: [opt]
+
+  @type reason :: {:invalid_toml, binary} | binary
+  @type error :: {:error, reason}
 
   @doc """
   Decode the given binary as TOML content
@@ -45,8 +48,8 @@ defmodule Toml do
   performance, if you don't need the convenience, or the validation, deferring such conversions
   until the values are used may be a better approach, rather than incurring the overhead during decoding.
   """
-  @spec decode(binary) :: {:ok, map} | {:error, term}
-  @spec decode(binary, opts) :: {:ok, map} | {:error, term}
+  @spec decode(binary) :: {:ok, map} | error
+  @spec decode(binary, opts) :: {:ok, map} | error
   defdelegate decode(bin, opts \\ []), to: __MODULE__.Decoder
   
   @doc """
@@ -54,22 +57,15 @@ defmodule Toml do
   """
   @spec decode!(binary) :: map | no_return
   @spec decode!(binary, opts) :: map | no_return
-  def decode!(bin, opts \\ []) do
-    case decode(bin, opts) do
-      {:ok, result} ->
-        result
-      {:error, _} = err ->
-        raise Toml.Error, err
-    end
-  end
+  defdelegate decode!(bin, opts \\ []), to: __MODULE__.Decoder
   
   @doc """
   Decode the file at the given path as TOML
   
   Takes same options as `decode/2`
   """
-  @spec decode_file(binary) :: {:ok, map} | {:error, term}
-  @spec decode_file(binary, opts) :: {:ok, map} | {:error, term}
+  @spec decode_file(binary) :: {:ok, map} | error
+  @spec decode_file(binary, opts) :: {:ok, map} | error
   defdelegate decode_file(path, opts \\ []), to: __MODULE__.Decoder
   
   @doc """
@@ -77,22 +73,15 @@ defmodule Toml do
   """
   @spec decode_file!(binary) :: map | no_return
   @spec decode_file!(binary, opts) :: map | no_return
-  def decode_file!(path, opts \\ []) do
-    case decode_file(path, opts) do
-      {:ok, result} ->
-        result
-      {:error, _} = err ->
-        raise Toml.Error, err
-    end
-  end
+  defdelegate decode_file!(path, opts \\ []), to: __MODULE__.Decoder
   
   @doc """
   Decode the given stream as TOML.
 
   Takes same options as `decode/2`
   """
-  @spec decode_stream(Enumerable.t) :: {:ok, map} | {:error, term}
-  @spec decode_stream(Enumerable.t, opts) :: {:ok, map} | {:error, term}
+  @spec decode_stream(Enumerable.t) :: {:ok, map} | error
+  @spec decode_stream(Enumerable.t, opts) :: {:ok, map} | error
   defdelegate decode_stream(stream, opts \\ []), to: __MODULE__.Decoder
   
   @doc """
@@ -100,12 +89,5 @@ defmodule Toml do
   """
   @spec decode_stream!(Enumerable.t) :: map | no_return
   @spec decode_stream!(Enumerable.t, opts) :: map | no_return
-  def decode_stream!(stream, opts \\ []) do
-    case decode_stream(stream, opts) do
-      {:ok, result} ->
-        result
-      {:error, _} = err ->
-        raise Toml.Error, err
-    end
-  end
+  defdelegate decode_stream!(stream, opts \\ []), to: __MODULE__.Decoder
 end

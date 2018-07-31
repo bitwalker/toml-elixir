@@ -4,7 +4,9 @@ defmodule Toml.Lexer do
   import __MODULE__.Guards
 
   defstruct [:pid]
-  
+
+  @type t :: %__MODULE__{pid: pid}
+
   # The type of the token
   @type type :: :whitespace
               | :newline
@@ -14,7 +16,10 @@ defmodule Toml.Lexer do
               | :octal
               | :binary
               | :alpha
+              | __MODULE__.String.type
+              | boolean
               | non_neg_integer
+              | :eof
   # The number of bytes in the input to skip to reach the beginning of the token
   @type skip :: non_neg_integer
   # The data representation of a token (either size, a character, or string)
@@ -23,6 +28,13 @@ defmodule Toml.Lexer do
   @type lines :: non_neg_integer
   # The full shape of a token
   @type token :: {type, skip, data, lines}
+  # The shape of errors the lexer produces
+  @type lexer_err :: {:error, term, skip, lines}
+  # The shape of the lexer stack
+  @type stack :: [token] | lexer_err
+  # The shape of replies which return tokens
+  @type token_reply :: {:ok, token} 
+                     | lexer_err
   
   @doc """
   Creates a new Lexer with the given binary content.
@@ -48,15 +60,16 @@ defmodule Toml.Lexer do
   
   Returns `{:ok, %#{__MODULE__}{}}`.
   """
+  @spec new(binary) :: {:ok, t}
   def new(content) when is_binary(content) do
-    with {:ok, pid} <- :proc_lib.start_link(__MODULE__, :init, [self(), content]) do
-      {:ok, %__MODULE__{pid: pid}}
-    end
+    {:ok, pid} = :proc_lib.start_link(__MODULE__, :init, [self(), content])
+    {:ok, %__MODULE__{pid: pid}}
   end
   
   @doc """
   Pops the next token from the lexer. This advances the lexer to the next token.
   """
+  @spec pop(t) :: token_reply
   def pop(%__MODULE__{pid: pid}) when is_pid(pid), 
     do: server_call(pid, :pop)
     
@@ -64,6 +77,7 @@ defmodule Toml.Lexer do
   Advances the lexer to the next token, without returning the current token on the stack,
   effectively skipping the current token.
   """
+  @spec advance(t) :: :ok
   def advance(%__MODULE__{pid: pid}) when is_pid(pid),
     do: server_call(pid, :advance)
 
@@ -72,6 +86,7 @@ defmodule Toml.Lexer do
 
   Always returns the same result until the lexer advances.
   """
+  @spec peek(t) :: token_reply
   def peek(%__MODULE__{pid: pid}) when is_pid(pid), 
     do: server_call(pid, :peek)
 
@@ -80,12 +95,21 @@ defmodule Toml.Lexer do
 
   You may push as many tokens back on the stack as desired.
   """
+  @spec push(t, token) :: :ok
   def push(%__MODULE__{pid: pid}, {_type, _skip, _data, _lines} = token) when is_pid(pid), 
     do: server_call(pid, {:push, token})
+
+  @doc """
+  Retrieves the position of the lexer in the current input
+  """
+  @spec pos(t) :: {:ok, skip, lines}
+  def pos(%__MODULE__{pid: pid}) when is_pid(pid),
+    do: server_call(pid, :pos)
     
   @doc """
   Terminates the lexer process.
   """
+  @spec stop(t) :: :ok
   def stop(%__MODULE__{pid: pid}) when is_pid(pid) do
     if Process.alive?(pid) do
       server_call(pid, :stop)
@@ -97,6 +121,7 @@ defmodule Toml.Lexer do
   @doc """
   Converts the lexer in to a `Stream`. Not currently used.
   """
+  @spec stream(t) :: Enumerable.t
   def stream(%__MODULE__{} = lexer) do
     Stream.resource(
       fn -> {lexer, false, false} end,
@@ -121,17 +146,18 @@ defmodule Toml.Lexer do
 
   ## Private
   
-  def init(parent, {:stream, stream}) do
+  def init(parent, {:stream, stream}) when is_pid(parent) do
     init(parent, Enum.into(stream, <<>>))
   end
-  def init(parent, data) do
+  def init(parent, data) when is_pid(parent) and is_binary(data) do
     Process.flag(:trap_exit, true)
     :proc_lib.init_ack(parent, {:ok, self()})
     lex(parent, :sys.debug_options([]), data, 0, 1, [])
   end
   
   # If an error is on the stack keep it there unless we push a valid token back on
-  defp lex(parent, debug, data, skip, lines, {:error, _, _, _} = err) do
+  @spec lex(pid, term, binary, skip, lines, stack) :: no_return
+  defp lex(parent, debug, data, skip, lines, {:error, _, eskip, elines} = err) do
     receive do
       {:EXIT, ^parent, reason} ->
         exit(reason)
@@ -144,6 +170,9 @@ defmodule Toml.Lexer do
       {from, op} when op in [:pop, :peek, :advance] ->
         send(from, {self(), err})
         lex(parent, debug, data, skip, lines, err)
+      {from, :pos} ->
+        send(from, {self(), {:ok, eskip, elines}})
+        lex(parent, debug, data, skip, lines, err)
     end
   end
   defp lex(parent, debug, data, skip, lines, []) do
@@ -154,7 +183,7 @@ defmodule Toml.Lexer do
         lex(parent, debug, data, skip, lines, [token])
     end
   end
-  defp lex(parent, debug, data, skip, lines, [token | stack] = ostack) do
+  defp lex(parent, debug, data, skip, lines, [{_,tskip,_,tlines} = token | stack] = ostack) do
     receive do
       {:EXIT, ^parent, reason} ->
         exit(reason)
@@ -173,9 +202,15 @@ defmodule Toml.Lexer do
       {from, {:push, pushed}} ->
         send(from, {self(), :ok})
         lex(parent, debug, data, skip, lines, [pushed | ostack])
+      {from, :pos} ->
+        send(from, {self(), {:ok, tskip, tlines}})
+        lex(parent, debug, data, skip, lines, ostack)
     end
   end
   
+  @spec do_lex(binary, skip, lines) :: {:ok, binary, token} | {:error, term, skip, lines}
+  defp do_lex(data, skip, lines)
+
   defp do_lex(<<>> = data, skip, lines), 
     do: {:ok, data, {:eof, skip, 0, lines}}
   defp do_lex(<<?\#, rest::binary>>, skip, lines), 

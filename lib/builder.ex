@@ -295,10 +295,12 @@ defmodule Toml.Builder do
   # and the value being set at that keypath is not an inline
   # table (effectively extending the keypath and pushing multiple values),
   # or table array (resulting in a new table being pushed into that array)
+  @spec key_exists!([binary]) :: no_return
   defp key_exists!(keypath),
     do: error!({:key_exists, Enum.join(keypath, ".")})
 
   # Raised due to any other document builder error
+  @spec error!([binary]) :: no_return
   defp error!(reason), 
     do: throw({:error, {:invalid_toml, reason}})
   

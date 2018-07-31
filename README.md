@@ -23,6 +23,7 @@ spec at the link above (it is short and easy to read!).
 - Supports use as a configuration provider in Distillery 2.x+ (use TOML
   files for configuration!)
 - Decoder is written by hand to take advantage of various optimizations.
+- Library passes Dialyzer checks
 
 ## Comparison To Other Libraries
 

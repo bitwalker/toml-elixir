@@ -81,7 +81,7 @@ defmodule Toml.MixProject do
   defp dialyzer do
     [
       ignore_warnings: "dialyzer.ignore",
-      flags: [:error_handling, :underspecs]
+      flags: [:error_handling, :underspecs, :unmatched_returns]
     ]
   end
 

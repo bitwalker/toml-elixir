@@ -3,14 +3,18 @@ defmodule Toml.Error do
   
   defexception [:message, :reason]
   
-  def exception({:error, {:invalid_toml, reason}}) when is_binary(reason) do
-    %__MODULE__{message: reason, reason: nil}
-  end
   def exception(msg) when is_binary(msg) do
     %__MODULE__{message: msg, reason: nil}
   end
   def exception({:error, reason}) do
     %__MODULE__{message: format_reason(reason), reason: reason}
+  end
+  def exception(reason) when is_tuple(reason) do
+    %__MODULE__{message: format_reason(reason), reason: reason}
+  end
+
+  def message(%__MODULE__{message: message}) do
+    message
   end
   
   @doc """

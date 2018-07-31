@@ -10,66 +10,122 @@ defmodule Toml.Decoder do
                     iodata_to_str: 1, iodata_to_integer: 1, iodata_to_float: 1]
   
   @doc """
-  Decodes a raw binary
+  Decodes a raw binary into a map.
+
+  `Toml.Error` is raised if decoding fails.
   """
-  @spec decode(binary, Toml.opts) :: {:ok, map} | {:error, term}
-  def decode(bin, opts) when is_binary(bin) and is_list(opts) do
-    filename = Keyword.get(opts, :filename, "nofile")
+  @spec decode!(binary, Toml.opts) :: map | no_return
+  def decode!(bin, opts) when is_binary(bin) and is_list(opts) do
+    # Raise if the filename is invalid
+    filename = 
+      case Keyword.get(opts, :filename, "nofile") do
+        name when is_binary(name) ->
+          name
+        n ->
+          raise ArgumentError, "invalid :filename option '#{inspect n}', must be a binary!"
+      end
+    # Get our lexer outside the try so that we can stop it if things go south
+    # This can only fail if the lexer process itself crashes during init
     {:ok, lexer} = Lexer.new(bin)
     try do
-      with {:ok, %Document{} = doc} <- do_decode(lexer, bin, Builder.new(opts)),
-           {:ok, _} = ok <- Document.to_map(doc) do
-        ok
-      else
-        {:error, {:badarg, reason}} ->
-          raise ArgumentError, reason
-        {:error, {:keys, :non_existing_atom} = reason} ->
-          {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
+      case do_decode(lexer, bin, Builder.new(opts)) do
+        {:ok, doc} ->
+          case Document.to_map(doc) do
+            {:ok, result} ->
+              result
+            {:error, reason} ->
+              raise Toml.Error, reason
+          end
         {:error, reason, skip, lines} ->
-          {:error, {:invalid_toml, format_error(reason, bin, filename, skip, lines)}}
-        {:error, reason} ->
-          {:error, {:invalid_toml, reason}}
+          raise Toml.Error, format_error(reason, bin, filename, skip, lines)
       end
     catch
-      :throw, {:error, {:invalid_toml, reason}} = err when is_binary(reason) ->
-         err
       :throw, {:error, {:invalid_toml, reason}} ->
-        {:error, {:invalid_toml, Toml.Error.format_reason(reason)}}
+        raise Toml.Error, reason
     after
       Lexer.stop(lexer)
     end
   end
 
   @doc """
-  Decodes a stream
+  Decodes a raw binary safely, returns `{:ok, map}` or `{:error, reason}`
   """
-  @spec decode_stream(Enumerable.t, Toml.opts) :: {:ok, map} | {:error, term}
+  @spec decode(binary, Toml.opts) :: {:ok, map} | Toml.error
+  def decode(bin, opts) when is_binary(bin) and is_list(opts) do
+    {:ok, decode!(bin, opts)}
+  rescue
+    err in [Toml.Error] ->
+      {:error, {:invalid_toml, Exception.message(err)}}
+  catch
+    :error, reason ->
+      {:error, Toml.Error.format_reason(reason)}
+  end
+
+  @doc """
+  Decodes a stream.
+
+  Raises `Toml.Error` if decoding fails.
+  """
+  @spec decode_stream!(Enumerable.t, Toml.opts) :: map | no_return
+  def decode_stream!(stream, opts) do
+    decode!(Enum.into(stream, <<>>), opts)
+  end
+
+  @doc """
+  Decodes a stream safely.
+
+  Returns same type as `decode/2`
+  """
+  @spec decode_stream(Enumerable.t, Toml.opts) :: {:ok, map} | Toml.error
   def decode_stream(stream, opts) do
     decode(Enum.into(stream, <<>>), opts)
   end
+
+  @doc """
+  Decodes a file.
+
+  Raises `Toml.Error` if decoding fails.
+  """
+  @spec decode_file!(String.t, Toml.opts) :: map | no_return
+  def decode_file!(path, opts) when is_binary(path) do
+    with {:ok, opts} <- set_filename_opt(opts, path),
+         bin = File.read!(path) do
+      decode!(bin, opts)
+    else
+      {:error, {:badarg, {:invalid_filename, f}}}  ->
+        raise ArgumentError, 
+          "invalid value for :filename: '#{inspect f}' must be a binary!"
+    end
+  end
   
   @doc """
-  Decodes a file
+  Decodes a file safely.
+
+  Returns same type as `decode/2`
   """
-  @spec decode_file(String.t, Toml.opts) :: {:ok, map} | {:error, term}
+  @spec decode_file(String.t, Toml.opts) :: {:ok, map} | Toml.error
   def decode_file(path, opts) when is_binary(path) do
-    opts =
-      case Keyword.get(opts, :filename) do
-        nil ->
-          Keyword.put(opts, :filename, path)
-        _ ->
-          opts
-      end
-    with {:ok, bin} <- File.read(path) do
+    with {:ok, opts} <- set_filename_opt(opts, path),
+         {:ok, bin} <- File.read(path) do
       decode(bin, opts)
+    end
+  end
+
+  defp set_filename_opt(opts, default) do
+    case Keyword.get(opts, :filename) do
+      nil ->
+        {:ok, Keyword.put(opts, :filename, default)}
+      name when is_binary(name) ->
+        {:ok, opts}
+      invalid ->
+        {:error, {:badarg, {:invalid_filename, invalid}}}
     end
   end
   
   ## Decoder Implementation
   
-  defp do_decode(_lexer, _original, {:error, _, _, _} = err), 
-    do: err
-  defp do_decode(lexer, original, doc) do
+  @spec do_decode(Lexer.t, binary, Document.t) :: {:ok, Document.t} | Lexer.lexer_err
+  defp do_decode(lexer, original, %Document{} = doc) do
     case Lexer.pop(lexer) do
       {:error, _reason, _skip, _lines} = err ->
         err
@@ -132,6 +188,7 @@ defmodule Toml.Decoder do
   defp seek_to_eol(<<_, _rest::binary>>, len), do: len
   
   # Skip top-level whitespace and newlines
+  @spec handle_token(Lexer.t, binary, Document.t, Lexer.type, Lexer.skip, binary | non_neg_integer, Lexer.lines) :: {:ok, Document.t} | Lexer.lexer_err
   defp handle_token(lexer, original, doc, :whitespace, _skip, _data, _lines),
     do: do_decode(lexer, original, doc)
   defp handle_token(lexer, original, doc, :newline, _skip, _data, _lines),
@@ -296,7 +353,7 @@ defmodule Toml.Decoder do
             # Float
             Lexer.advance(lexer)
             float(lexer, ?., [?., d])
-          {:ok, {:alpha, <<c::utf8>>}, _, _} when c in 'eE' ->
+          {:ok, {:alpha, _, <<c::utf8>>, _}} when c in 'eE' ->
             # Float
             Lexer.advance(lexer)
             float(lexer, ?e, [?e, ?0, ?., d])
@@ -464,11 +521,11 @@ defmodule Toml.Decoder do
   
   defp maybe_datetime(lexer) do
     # At this point we have at least YYYY-
-    with {:ok, {:digits, _, <<_::utf8,_::utf8,_::utf8,_::utf8>> = yy, _}} <- Lexer.pop(lexer),
-         {:ok, {?-, _, _, _}} <- Lexer.pop(lexer),
-         {:ok, {:digits, _, <<_::utf8,_::utf8>> = mm, _}} <- Lexer.pop(lexer),
-         {:ok, {?-, _, _, _}} <- Lexer.pop(lexer),
-         {:ok, {:digits, skip, <<_::utf8, _::utf8>> = dd, lines}} <- Lexer.pop(lexer) do
+    with {:ok, {:digits,_,<<_::utf8,_::utf8,_::utf8,_::utf8>> = yy,_}} <- Lexer.pop(lexer),
+         {:ok, {?-,_,_,_}} <- Lexer.pop(lexer),
+         {:ok, {:digits,_,<<_::utf8,_::utf8>> = mm,_}} <- Lexer.pop(lexer),
+         {:ok, {?-,_,_,_}} <- Lexer.pop(lexer),
+         {:ok, {:digits,skip,<<_::utf8, _::utf8>> = dd,lines}} <- Lexer.pop(lexer) do
       # At this point we have a full date, check for time
       case Lexer.pop(lexer) do
         {:ok, {:alpha, _, "T", _}} ->
@@ -515,19 +572,18 @@ defmodule Toml.Decoder do
   end
   
   defp datetime(lexer, parts, time) do
+    # Track the current lexer position for errors
+    {:ok, skip, lines} = Lexer.pos(lexer)
+    # Convert parts to string
+    datestr = iodata_to_str(parts)
     # At this point we have at least YYYY-mm-dd and a fully decoded time
-    with {:ok, date} <- Date.from_iso8601(iodata_to_str(parts)),
-         {:ok, naive} <- NaiveDateTime.new(date, time) do
+    with {_, {:ok, date}} <- {:date, Date.from_iso8601(datestr)},
+         {_, {:ok, naive}} <- {:datetime, NaiveDateTime.new(date, time)} do
       # We just need to check for Z or UTC offset
       case Lexer.pop(lexer) do
-        {:ok, {:alpha, skip, "Z", lines}} ->
-          case DateTime.from_naive(naive, "Etc/UTC") do
-            {:error, reason} ->
-              {:error, {:invalid_datetime, reason}, skip, lines}
-            {:ok, _} = result ->
-              result
-          end
-        {:ok, {sign, skip, _, lines}} when sign in '-+' ->
+        {:ok, {:alpha, _, "Z", _}} ->
+          DateTime.from_naive(naive, "Etc/UTC")
+        {:ok, {sign, _, _, _}} when sign in '-+' ->
           # We have an offset
           with {:ok, {:digits, _, <<_::utf8,_::utf8>> = hh, _}} <- Lexer.pop(lexer),
               {:ok, {?:, _, _, _}} <- Lexer.pop(lexer),
@@ -543,12 +599,7 @@ defmodule Toml.Decoder do
                 ?+ ->
                   NaiveDateTime.add(naive, offset, :second)
               end
-            case DateTime.from_naive(naive, "Etc/UTC") do
-              {:error, reason} ->
-                {:error, {:invalid_datetime, reason}, skip, lines}
-              {:ok, _} = result ->
-                result
-            end
+            DateTime.from_naive(naive, "Etc/UTC")
           else
             {:error, _, _, _} = err ->
               err
@@ -561,6 +612,14 @@ defmodule Toml.Decoder do
           {:ok, naive}
       end
     else
+      {:date, {:error, :invalid_date}} ->
+        {:error, {:invalid_date, datestr}, skip, lines}
+      {:date, {:error, reason}} ->
+        {:error, {:invalid_date, reason, datestr}, skip, lines}
+      {:datetime, {:error, :invalid_date}} ->
+        {:error, {:invalid_datetime, {datestr, time}}, skip, lines}
+      {:datetime, {:error, reason}} ->
+        {:error, {:invalid_date, reason, {datestr, time}}, skip, lines}
       {:error, _, _, _} = err ->
         err
       {:ok, {type, skip, data, lines}} ->

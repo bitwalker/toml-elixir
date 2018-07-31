@@ -23,15 +23,13 @@ defmodule Toml.Document do
   # A keypath is a list of keys, they are all of the same key type
   @type keypath :: list(binary) | list(atom) | list(term)
   
-  @type transform :: Toml.Transform.transform
-
   @type t :: %__MODULE__{
     keys: %{key => value},
     comments: %{keypath => binary},
-    open_table: keypath,
+    open_table: keypath | nil,
     comment_stack: [binary],
-    keyfun: nil | ((binary) -> term),
-    transforms: [transform]
+    keyfun: nil | ((binary) -> term | no_return),
+    transforms: [Toml.Transform.t]
   }
   
   @doc """
@@ -39,24 +37,16 @@ defmodule Toml.Document do
   """
   @spec new(Toml.opts) :: t
   def new(opts) when is_list(opts) do
-    with keyfun = to_key_fun(Keyword.get(opts, :keys, :strings)),
-         transforms = Keyword.get(opts, :transforms, []),
-         :ok <- valid_keyfun?(keyfun),
-         :ok <- valid_transforms?(transforms) do
-      %__MODULE__{
-        keys: %{}, 
-        comments: %{}, 
-        open_table: nil,
-        comment_stack: [],
-        keyfun: keyfun,
-        transforms: transforms
-      }
-    else
-      {:error, {:invalid_keyfun, _} = reason} ->
-        {:error, {:badarg, reason}}
-      {:error, {:invalid_transform, _} = reason} ->
-        {:error, {:badarg, reason}}
-    end
+    keyfun = to_key_fun(Keyword.get(opts, :keys, :strings))
+    transforms = Keyword.get(opts, :transforms, [])
+    %__MODULE__{
+      keys: %{}, 
+      comments: %{}, 
+      open_table: nil,
+      comment_stack: [],
+      keyfun: keyfun,
+      transforms: transforms
+    }
   end
  
   @doc """
@@ -73,7 +63,6 @@ defmodule Toml.Document do
   transformer to transformer and the final result replaces the value in the
   document.
   """
-  @spec to_map(t) :: {:ok, map} | {:error, term}
   def to_map(%__MODULE__{keys: keys, keyfun: keyfun, transforms: ts}) do
     transform =
       case ts do
@@ -84,7 +73,7 @@ defmodule Toml.Document do
       end
     {:ok, to_map2(keys, keyfun, transform)}
   catch
-    :throw, {:error, _} = err ->
+    _, {:error, {:keys, {:non_existing_atom, _}}} = err ->
       err
   end
 
@@ -92,19 +81,19 @@ defmodule Toml.Document do
   defp to_map2(m, nil, nil) when is_map(m) do
     for {k, v} <- m, into: %{}, do: {k, to_map3(k, v, nil, nil)}
   end
-  defp to_map2(m, keyfun, nil) when is_map(m) and is_function(keyfun) do
+  defp to_map2(m, keyfun, nil) when is_map(m) and is_function(keyfun, 1) do
     for {k, v} <- m, into: %{} do 
       k2 = keyfun.(k)
       {k2, to_map3(k2, v, keyfun, nil)}
     end
   end
-  defp to_map2(m, nil, transform) when is_map(m) and is_function(transform) do
+  defp to_map2(m, nil, transform) when is_map(m) and is_function(transform, 2) do
     for {k, v} <- m, into: %{} do
       v2 = to_map3(k, v, nil, transform)
       {k, v2}
     end
   end
-  defp to_map2(m, keyfun, transform) when is_map(m) and is_function(keyfun) and is_function(transform) do
+  defp to_map2(m, keyfun, transform) when is_map(m) and is_function(keyfun, 1) and is_function(transform, 2) do
     for {k, v} <- m, into: %{} do
       k2 = keyfun.(k)
       v2 = to_map3(k2, v, keyfun, transform)
@@ -156,40 +145,13 @@ defmodule Toml.Document do
   defp to_existing_atom(<<c::utf8, _::binary>> = key) when c >= ?A and c <= ?Z do
     Module.concat([String.to_existing_atom(key)])
   rescue
-    ArgumentError ->
+    _ ->
       throw {:error, {:keys, {:non_existing_atom, key}}}
   end
   defp to_existing_atom(key) do
     String.to_existing_atom(key)
   rescue
-    ArgumentError ->
+    _ ->
       throw {:error, {:keys, {:non_existing_atom, key}}}
   end
-  
-  # Determines if the given key conversion function is valid
-  defp valid_keyfun?(nil), 
-    do: :ok
-  defp valid_keyfun?(fun) when is_function(fun, 1), 
-    do: :ok
-  defp valid_keyfun?(other), 
-    do: {:error, {:invalid_keyfun, other}}
-  
-  # Determines if the given transform list is valid
-  defp valid_transforms?([]), 
-    do: :ok
-  defp valid_transforms?([h | rest]) when is_atom(h) do
-    if function_exported?(h, :transform, 2) do
-      valid_transforms?(rest)
-    else
-      # Double check by ensuring the module is loaded
-      if Code.ensure_loaded?(h) and function_exported?(h, :transforms, 2) do
-        valid_transforms?(rest)
-      else
-        # Nope
-        {:error, {:invalid_transform, h}}
-      end
-    end
-  end
-  defp valid_transforms?([h | _]), 
-    do: {:error, {:invalid_transform, h}}
 end

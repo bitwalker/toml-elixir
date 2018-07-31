@@ -5,7 +5,18 @@ defmodule Toml.Lexer.String do
   # strings as defined by the TOML spec.
   
   import Toml.Lexer.Guards
+
+  @type type :: :string
+              | :multiline_string
+
+  @type skip :: Toml.Lexer.skip
+  @type lines :: Toml.Lexer.lines
+  @type lexer_err :: Toml.Lexer.lexer_err
+  @type result :: {:ok, binary, {type, skip, binary, lines}} | lexer_err
   
+  @spec lex(binary, skip, lines) :: result
+  def lex(binary, skip, lines)
+
   def lex(<<>>, skip, lines), 
     do: {:error, :unexpected_eof, skip, lines}
   def lex(<<?\', ?\', ?\', rest::binary>>, skip, lines) do
@@ -24,7 +35,6 @@ defmodule Toml.Lexer.String do
     do: {:ok, rest, {:string, skip+2, <<>>, lines}}
   def lex(<<?\", rest::binary>>, skip, lines),
     do: lex_quoted(:single, rest, skip+1, [], lines)
-
   
   defp lex_literal(_type, <<>>, skip, _acc, lines),
     do: {:error, :unclosed_quote, skip, lines}
@@ -74,11 +84,11 @@ defmodule Toml.Lexer.String do
     do: lex_quoted(type, rest, skip+1, [?\n | acc], lines+1)
   # Allow escaping newlines in multi-ine strings
   defp lex_quoted(:multi, <<?\\, ?\r, ?\n, rest::binary>>, skip, acc, lines) do
-    {rest, skip, lines} = trim_whitespace(:quoted, rest, skip+3, lines+1)
+    {rest, skip, lines} = trim_whitespace(rest, skip+3, lines+1)
     lex_quoted(:multi, rest, skip, acc, lines)
   end
   defp lex_quoted(:multi, <<?\\, ?\n, rest::binary>>, skip, acc, lines) do
-    {rest, skip, lines} = trim_whitespace(:quoted, rest, skip+2, lines+1)
+    {rest, skip, lines} = trim_whitespace(rest, skip+2, lines+1)
     lex_quoted(:multi, rest, skip, acc, lines)
   end
   # Trim trailing whitespace at end of line
@@ -145,21 +155,18 @@ defmodule Toml.Lexer.String do
   end
   defp lex_quoted(_type, <<c, _::binary>>, skip, _acc, lines),
     do: {:error, {:invalid_unicode, <<c>>}, skip+1, lines}
-
+  
   defp trim_newline(<<?\r, ?\n, rest::binary>>, skip, lines), do: {rest, skip+2, lines+1}
   defp trim_newline(<<?\n, rest::binary>>, skip, lines), do: {rest, skip+1, lines+1}
   defp trim_newline(rest, skip, lines), do: {rest, skip, lines}
   
   # Trims whitespace (tab, space) up until next non-whitespace character,
-  # or until closing delimiter for given string type. Only allowed with mulit-line strings.
-  defp trim_whitespace(type, <<c::utf8, rest::binary>>, skip, lines) when is_whitespace(c) do
-    trim_whitespace(type, rest, skip+1, lines)
-  end
-  defp trim_whitespace(:literal, <<?\', ?\', ?\', _::binary>> = rest, skip, lines), 
+  # or until closing delimiter. Only allowed with mulit-line quoted strings.
+  defp trim_whitespace(<<c::utf8, rest::binary>>, skip, lines) when is_whitespace(c),
+    do: trim_whitespace(rest, skip+1, lines)
+  defp trim_whitespace(<<?\", ?\", ?\", _::binary>> = rest, skip, lines), 
     do: {rest, skip, lines}
-  defp trim_whitespace(:quoted, <<?\", ?\", ?\", _::binary>> = rest, skip, lines), 
-    do: {rest, skip, lines}
-  defp trim_whitespace(_type, rest, skip, lines), 
+  defp trim_whitespace(rest, skip, lines), 
     do: {rest, skip, lines}
   
   def unescape_unicode(?U, <<n::8-binary, bin::binary>>) do
@@ -208,7 +215,7 @@ defmodule Toml.Lexer.String do
             bad_unicode!(n)
         end
       # second part of surrogate pair (without first part)
-      u when 0xDC00 <= u and u <= 0xDFFF and u < 0 ->
+      u when (0xDC00 <= u and u <= 0xDFFF) or u < 0 ->
         bad_unicode!(n)
       u ->
         {<<u::utf8>>, bin, 4}
@@ -221,6 +228,7 @@ defmodule Toml.Lexer.String do
     bad_unicode!(<<c>>)
   end
   
+  @spec bad_unicode!(binary) :: no_return
   defp bad_unicode!(byte), do: throw({:invalid_unicode, byte})
   
   defp mod(x, y) when x > 0, do: rem(x, y)

@@ -5,6 +5,7 @@ defmodule Toml.Transform do
   See the documentation for `c:transform/2` for more details.
   """
   
+  @type t :: module
   @type key :: binary | atom | term
   @type keypath :: [binary] | [atom] | [term]
   @type value :: %{key => value}
