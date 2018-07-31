@@ -1,0 +1,27 @@
+{
+    "fruit": [
+        {
+            "physical": {
+                "color": "red", 
+                "shape": "round"
+            }, 
+            "name": "apple", 
+            "variety": [
+                {
+                    "name": "red delicious"
+                }, 
+                {
+                    "name": "granny smith"
+                }
+            ]
+        }, 
+        {
+            "name": "banana", 
+            "variety": [
+                {
+                    "name": "plantain"
+                }
+            ]
+        }
+    ]
+}

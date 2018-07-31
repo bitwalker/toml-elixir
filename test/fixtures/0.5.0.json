@@ -22,15 +22,15 @@
     "type": "string",
     "value": "First line\n\tSecond line_\n\n       Still second line"
   },
+  "binary": {
+    "type": "integer",
+    "value": "43"
+  },
   "bool_array": {
     "type": "array",
     "value": [
       {
         "type": "bool",
-        "value": "false"
-      },
-      {
-        "type": "bool",
         "value": "true"
       },
       {
@@ -40,22 +40,14 @@
       {
         "type": "bool",
         "value": "true"
+      },
+      {
+        "type": "bool",
+        "value": "false"
       }
     ]
   },
-  "date": {
-    "type": "datetime",
-    "value": "2017-04-04"
-  },
   "dotted": {
-    "binary": {
-      "type": "integer",
-      "value": "43"
-    },
-    "hexa": {
-      "type": "integer",
-      "value": "65535"
-    },
     "key": {
       "type": "integer",
       "value": "12"
@@ -63,10 +55,6 @@
     "more_data": {
       "type": "string",
       "value": "some string"
-    },
-    "octal": {
-      "type": "integer",
-      "value": "511"
     },
     "sub": {
       "subsub": {
@@ -133,6 +121,10 @@
       ]
     }
   ],
+  "hexa": {
+    "type": "integer",
+    "value": "65535"
+  },
   "infinity": {
     "type": "integer",
     "value": "Infinity"
@@ -152,11 +144,11 @@
     "value": [
       {
         "type": "integer",
-        "value": "2"
+        "value": "0"
       },
       {
         "type": "integer",
-        "value": "0"
+        "value": "2"
       }
     ]
   },
@@ -185,19 +177,19 @@
     "value": [
       {
         "type": "string",
-        "value": "multiline\n    string"
-      },
-      {
-        "type": "string",
-        "value": "multiline\n    string"
-      },
-      {
-        "type": "string",
         "value": "string"
       },
       {
         "type": "string",
         "value": "string"
+      },
+      {
+        "type": "string",
+        "value": "multiline\n    string"
+      },
+      {
+        "type": "string",
+        "value": "multiline\n    string"
       }
     ]
   },
@@ -212,38 +204,42 @@
         "type": "array",
         "value": [
           {
-            "type": "string",
-            "value": "b"
-          },
-          {
-            "type": "string",
-            "value": "a"
-          }
-        ]
-      },
-      {
-        "type": "array",
-        "value": [
-          {
-            "type": "bool",
-            "value": "false"
-          },
-          {
-            "type": "bool",
-            "value": "true"
-          }
-        ]
-      },
-      {
-        "type": "array",
-        "value": [
-          {
             "type": "integer",
             "value": "1"
           }
         ]
+      },
+      {
+        "type": "array",
+        "value": [
+          {
+            "type": "bool",
+            "value": "true"
+          },
+          {
+            "type": "bool",
+            "value": "false"
+          }
+        ]
+      },
+      {
+        "type": "array",
+        "value": [
+          {
+            "type": "string",
+            "value": "a"
+          },
+          {
+            "type": "string",
+            "value": "b"
+          }
+        ]
       }
     ]
+  },
+  "octal": {
+    "type": "integer",
+    "value": "511"
   },
   "p_inf": {
     "type": "integer",
@@ -253,10 +249,6 @@
     "type": "integer",
     "value": "NaN"
   },
-  "preciseTime": {
-    "type": "datetime",
-    "value": "16:41:20.00700"
-  },
   "spaces": {
     "type": "float",
     "value": "10000999.010203"
@@ -265,25 +257,35 @@
     "type": "string",
     "value": "value"
   },
-  "subkey": {
-    "type": "datetime",
-    "value": "2017-02-25T12:00:01.123456"
-  },
-  "subkey with space": {
-    "type": "datetime",
-    "value": "2017-02-25T12:00:01.123456"
-  },
   "table": {
     "subDefinedFirst": {
       "test": {
         "type": "string",
         "value": "this is valid TOML"
       }
+    },
+    "subTable": {
+      "date": {
+        "type": "datetime",
+        "value": "2017-04-04"
+      },
+      "preciseTime": {
+        "type": "datetime",
+        "value": "16:41:20.00700"
+      },
+      "subkey": {
+        "type": "datetime",
+        "value": "2017-02-25T12:00:01.123456"
+      },
+      "subkey with space": {
+        "type": "datetime",
+        "value": "2017-02-25T12:00:01.123456"
+      },
+      "time": {
+        "type": "datetime",
+        "value": "16:41:20"
+      }
     }
-  },
-  "time": {
-    "type": "datetime",
-    "value": "16:41:20"
   },
   "with_comments": {
     "type": "string",

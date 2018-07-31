@@ -1,0 +1,245 @@
+{
+  "clients": {
+    "data": {
+      "type": "array",
+      "value": [
+        {
+          "type": "array",
+          "value": [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "value": [
+            {
+              "type": "string",
+              "value": "delta"
+            },
+            {
+              "type": "string",
+              "value": "gamma"
+            }
+          ]
+        }
+      ]
+    },
+    "hosts": {
+      "type": "array",
+      "value": [
+        {
+          "type": "string",
+          "value": "omega"
+        },
+        {
+          "type": "string",
+          "value": "alpha"
+        }
+      ]
+    },
+    "key3": {
+      "type": "string",
+      "value": "The quick brown fox jumps over the lazy dog."
+    },
+    "lines": {
+      "type": "string",
+      "value": "The first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n"
+    },
+    "quoted": {
+      "type": "string",
+      "value": "Tom \"Dubs\" Preston-Werner"
+    },
+    "regex": {
+      "type": "string",
+      "value": "<\\i\\c*\\s*>"
+    },
+    "regex2": {
+      "type": "string",
+      "value": "I [dw]on't need \\d{2} apples"
+    },
+    "str2": {
+      "type": "string",
+      "value": "The quick brown \n\n  fox jumps over the lazy dog."
+    },
+    "str_multiline": {
+      "type": "string",
+      "value": "Roses are red\nViolets are blue"
+    },
+    "str_quoted": {
+      "type": "string",
+      "value": "I'm a string. \"You can quote me\". Name\tJosé\nLocation\tSF."
+    },
+    "winpath": {
+      "type": "string",
+      "value": "C:\\Users\\nodejs\\templates"
+    },
+    "winpath2": {
+      "type": "string",
+      "value": "\\\\ServerX\\admin$\\system32\\"
+    }
+  },
+  "database": {
+    "connection_max": {
+      "type": "integer",
+      "value": "5000"
+    },
+    "enabled": {
+      "type": "bool",
+      "value": "true"
+    },
+    "ports": {
+      "type": "array",
+      "value": [
+        {
+          "type": "integer",
+          "value": "8002"
+        },
+        {
+          "type": "integer",
+          "value": "8001"
+        },
+        {
+          "type": "integer",
+          "value": "8001"
+        }
+      ]
+    },
+    "server": {
+      "type": "string",
+      "value": "192.168.1.1"
+    }
+  },
+  "fruit": [
+    {
+      "name": {
+        "type": "string",
+        "value": "apple"
+      },
+      "physical": {
+        "color": {
+          "type": "string",
+          "value": "red"
+        },
+        "shape": {
+          "type": "string",
+          "value": "round"
+        }
+      },
+      "variety": [
+        {
+          "name": {
+            "type": "string",
+            "value": "red delicious"
+          }
+        },
+        {
+          "name": {
+            "type": "string",
+            "value": "granny smith"
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "type": "string",
+        "value": "banana"
+      },
+      "variety": [
+        {
+          "name": {
+            "type": "string",
+            "value": "plantain"
+          },
+          "points": [
+            {
+              "x": {
+                "type": "integer",
+                "value": "2"
+              },
+              "y": {
+                "type": "integer",
+                "value": "4"
+              },
+              "z": {
+                "type": "integer",
+                "value": "8"
+              }
+            },
+            {
+              "x": {
+                "type": "integer",
+                "value": "7"
+              },
+              "y": {
+                "type": "integer",
+                "value": "8"
+              },
+              "z": {
+                "type": "integer",
+                "value": "9"
+              }
+            },
+            {
+              "x": {
+                "type": "integer",
+                "value": "1"
+              },
+              "y": {
+                "type": "integer",
+                "value": "2"
+              },
+              "z": {
+                "type": "integer",
+                "value": "3"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "owner": {
+    "dob": {
+      "type": "datetime",
+      "value": "1979-05-26T23:32:00Z"
+    },
+    "name": {
+      "type": "string",
+      "value": "Tom Preston-Werner"
+    }
+  },
+  "servers": {
+    "alpha": {
+      "dc": {
+        "type": "string",
+        "value": "eqdc10"
+      },
+      "ip": {
+        "type": "string",
+        "value": "10.0.0.1"
+      }
+    },
+    "beta": {
+      "dc": {
+        "type": "string",
+        "value": "eqdc10"
+      },
+      "ip": {
+        "type": "string",
+        "value": "10.0.0.2"
+      }
+    }
+  },
+  "title": {
+    "type": "string",
+    "value": "TOML Example"
+  }
+}

@@ -1,0 +1,3 @@
+{
+    "lines": "The first newline is\ntrimmed in raw strings.\n   All other whitespace\n   is preserved.\n"
+}
