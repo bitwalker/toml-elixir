@@ -70,7 +70,7 @@ defmodule Toml.MixProject do
   defp aliases(_env) do
     [
       "compile-check": [
-        "compile",
+        "compile --warnings-as-errors",
         "dialyzer --halt-exit-status",
         "format --check-formatted --dry-run"
       ],
