@@ -61,6 +61,19 @@ defmodule Toml.Lexer.String do
     do: lex_quoted(type, rest, skip+2, [?\n | acc], lines+1)
   defp lex_quoted(type, <<?\n, rest::binary>>, skip, acc, lines),
     do: lex_quoted(type, rest, skip+1, [?\n | acc], lines+1)
+  # Allow escaping newlines in multi-ine strings
+  defp lex_quoted(:multi, <<?\\, ?\r, ?\n, rest::binary>>, skip, acc, lines) do
+    {rest, skip, lines} = trim_whitespace(:quoted, rest, skip+3, lines+1)
+    lex_quoted(:multi, rest, skip, acc, lines)
+  end
+  defp lex_quoted(:multi, <<?\\, ?\n, rest::binary>>, skip, acc, lines) do
+    {rest, skip, lines} = trim_whitespace(:quoted, rest, skip+2, lines+1)
+    lex_quoted(:multi, rest, skip, acc, lines)
+  end
+  # Trim trailing whitespace at end of line
+  defp lex_quoted(:multi, <<?\\, ?\s, rest::binary>>, skip, acc, lines) do
+    lex_quoted(:multi, <<?\\, rest::binary>>, skip, acc, lines)
+  end
   # Allowed escapes
   defp lex_quoted(type, <<?\\, ?\\, rest::binary>>, skip, acc, lines) do
     lex_quoted(type, rest, skip+2, [?\\ | acc], lines)
@@ -98,15 +111,6 @@ defmodule Toml.Lexer.String do
   catch
     :throw, {:invalid_unicode, _} = reason ->
       {:error, reason, skip, lines}
-  end
-  # Allow escaping newlines in multi-line strings
-  defp lex_quoted(:multi, <<?\\, ?\r, ?\n, rest::binary>>, skip, acc, lines) do
-    {rest, skip, lines} = trim_whitespace(:quoted, rest, skip+3, lines+1)
-    lex_quoted(:multi, rest, skip, acc, lines)
-  end
-  defp lex_quoted(:multi, <<?\\, ?\n, rest::binary>>, skip, acc, lines) do
-    {rest, skip, lines} = trim_whitespace(:quoted, rest, skip+2, lines+1)
-    lex_quoted(:multi, rest, skip, acc, lines)
   end
   # Bad escape
   defp lex_quoted(_type, <<?\\, char::utf8, _::binary>>, skip, _acc, lines) do
