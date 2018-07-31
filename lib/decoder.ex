@@ -81,12 +81,12 @@ defmodule Toml.Decoder do
   # Converts an error into a friendly, printable representation
   defp format_error(reason, original, filename, skip, lines) do
     msg = "#{Toml.Error.format_reason(reason)} in #{Path.relative_to_cwd(filename)} on line #{lines}"
-    {ctx, pos} = seek_line(original, skip, lines)
+    {ctx, pos} = seek_line(original, skip-1, lines)
     """
     #{msg}:
     
         #{ctx}
-       #{String.duplicate(" ", pos)}^
+        #{String.duplicate(" ", pos)}^ at column #{pos}
     """
   end
   
