@@ -617,8 +617,6 @@ defmodule Toml.Decoder do
         {:ok, v}
       {:ok, {sign, _, _, _}} when sign in '-+' ->
         maybe_integer(lexer)
-      {:ok, {:digits, skip, <<?0, rest::binary>>, lines}} when byte_size(rest) > 0 ->
-        {:error, {:invalid_integer, :leading_zero}, skip, lines}
       {:ok, {:digits, _, _, _}} ->
         maybe_integer(lexer)
       {:ok, {type, skip, data, lines}} ->
