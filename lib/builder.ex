@@ -70,6 +70,9 @@ defmodule Toml.Builder do
             |> comment(keypath) 
             |> open(keypath)
             |> to_result()
+          :else ->
+            {k, _} = Enum.find(exists, fn {_, v} -> not is_map(v) end)
+            key_exists!(keypath ++ [k])
         end
       _exists ->
         key_exists!(keypath)
@@ -211,7 +214,7 @@ defmodule Toml.Builder do
         end
     end
   end
-  def push_key_into_table(ts, [key], value) do
+  def push_key_into_table(ts, [key], value) when is_map(ts) do
     # Reached final table
     case Map.get(ts, key) do
       nil ->
@@ -240,7 +243,11 @@ defmodule Toml.Builder do
     :throw, {:error, _} = err ->
       err
   end
-  def push_key_into_table(ts, [table | keypath], value) do
+  def push_key_into_table(ts, _keypath, _value) when not is_map(ts) do
+    # The table we're trying to push into is not itself a table, this is redefinition!
+    {:error, :key_exists}
+  end
+  def push_key_into_table(ts, [table | keypath], value) when is_map(ts) do
     result =
       case Map.get(ts, table) do
         nil ->
