@@ -52,6 +52,13 @@ defmodule Toml.Error do
     do: "unexpected end of file"
   def format_reason({:invalid_escape, char}),
     do: "illegal escape sequence #{char}"
+  def format_reason({:invalid_control_char, char}) do
+    if String.printable?(char) do
+      "illegal control character #{inspect char, base: :hex} ('#{char}')"
+    else
+      "illegal control character #{inspect char, base: :hex}"
+    end
+  end
   def format_reason({:invalid_char, char}) do
     if String.printable?(char) do
       "illegal character #{inspect char, base: :hex} ('#{char}')"
@@ -59,11 +66,15 @@ defmodule Toml.Error do
       "illegal character #{inspect char, base: :hex}"
     end
   end
-  def format_reason({:invalid_unicode, message}) do
-    "illegal unicode escape, #{message}"
+  def format_reason({:invalid_unicode, char}) do
+    if String.printable?(char) do
+      "illegal unicode escape, #{inspect char, base: :hex} ('#{char}')"
+    else
+      "illegal unicode escape, #{inspect char, base: :hex}"
+    end
   end
   def format_reason({:key_exists, key}) do
-    "cannot redefine key '#{key}'"
+    "cannot redefine key in path '#{key}'"
   end
   def format_reason(reason), do: "#{inspect reason}"
   

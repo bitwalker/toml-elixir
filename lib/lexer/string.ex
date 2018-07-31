@@ -46,6 +46,14 @@ defmodule Toml.Lexer.String do
     bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
     {:ok, rest, {:multiline_string, skip+3, bin, lines}}
   end
+  # Disallow any control chars in single quoted literals
+  defp lex_literal(:single, <<c::utf8, _::binary>>, skip, _acc, lines) when (c >= 0 and c <= 31) or c == 127,
+    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip, lines}
+  # Disallow any control chars in single quoted literals, EXCEPT \t in multi-line literals
+  defp lex_literal(:multi, <<?\t, rest::binary>>, skip, acc, lines),
+    do: lex_literal(:multi, rest, skip+1, [?\t | acc], lines)
+  defp lex_literal(:multi, <<c::utf8, _::binary>>, skip, _acc, lines) when (c >= 0 and c <= 31) or c == 127,
+    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip, lines}
   # Eat next character in string
   defp lex_literal(type, <<c::utf8, rest::binary>>, skip, acc, lines), 
     do: lex_literal(type, rest, skip+1, [c | acc], lines)
@@ -125,6 +133,9 @@ defmodule Toml.Lexer.String do
     bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:string, skip+1, bin, lines}}
   end
+  # Disallow any unescaped control chars in quoted strings
+  defp lex_quoted(_type, <<c::utf8, _::binary>>, skip, _acc, lines) when (c >= 0 and c <= 31) or c == 127,
+    do: {:error, {:invalid_control_char, <<c::utf8>>}, skip, lines}
   # Eat next character in string
   defp lex_quoted(type, <<c::utf8, rest::binary>>, skip, acc, lines) do
     lex_quoted(type, rest, skip+1, [c | acc], lines)
