@@ -1,0 +1,5 @@
+[toml]
+provider_test = "success!"
+
+[toml.nested]
+foo = "bar"
