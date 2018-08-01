@@ -17,11 +17,15 @@ defmodule Toml.MixProject do
         "bench.decoder": :bench,
         "bench.lexer": :bench,
         docs: :docs,
-        "hex.publish": :docs
+        "hex.publish": :docs,
+        coveralls: :test,
+        "coveralls.html": :test,
+        "coveralls.details": :test,
       ],
       dialyzer: dialyzer(),
       elixirc_paths: elixirc_paths(Mix.env()),
-      escript: escript(Mix.env())
+      escript: escript(Mix.env()),
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -39,7 +43,8 @@ defmodule Toml.MixProject do
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:benchee, "~> 0.13", only: [:bench]},
       {:benchee_html, "~> 0.5", only: [:bench]},
-      {:jason, "~> 1.0", only: [:test, :bench]}
+      {:jason, "~> 1.0", only: [:test, :bench]},
+      {:excoveralls, "~> 0.9", only: [:test]}
       # For benchmarking, though none of these libraries work at this point
       # {:tomlex, "~> 0.0.5", only: [:bench]},
       # {:toml_elixir, "~> 2.0.1", only: [:bench]},

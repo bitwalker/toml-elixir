@@ -1,0 +1,7 @@
+{
+    "skip_files": [
+        "test/support",
+        "lib/lexer/guards.ex"
+    ],
+    "treat_no_relevant_lines_as_covered": true
+}
