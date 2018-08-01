@@ -5,9 +5,20 @@ elixir:
   - 1.7
 otp_release:
   - 21.0
+env:
+  - "PLT_DIR=$HOME/.plt"
+cache:
+  directories:
+    - _build
+    - deps
+    - $PLT_DIR
+before_script:
+  - "mkdir -p $PLT_DIR"
+  - "mix do deps.get, dialyzer --plt"
+  - "MIX_ENV=test mix deps.get"
 script:
-  - "mix do deps.get, compile-check"
-  - "MIX_ENV=test mix do deps.get, mix test"
+  - "mix compile-check"
+  - "MIX_ENV=test mix do compile, test"
 notifications:
   recipients:
     - paulschoenfelder@gmail.com
