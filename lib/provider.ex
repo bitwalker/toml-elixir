@@ -85,6 +85,7 @@ defmodule Toml.Provider do
         Application.put_env(app, k, v, persistent: true)
       end
     end
+    :ok
   end
 
   # At the top level, convert the map to a keyword list of keyword lists

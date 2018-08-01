@@ -66,6 +66,8 @@ defmodule Toml.Decoder do
   rescue
     err in [Toml.Error] ->
       {:error, {:invalid_toml, Exception.message(err)}}
+    err in [ArgumentError] ->
+      {:error, err.message}
   catch
     :error, reason ->
       {:error, Toml.Error.format_reason(reason)}
@@ -101,10 +103,6 @@ defmodule Toml.Decoder do
     with {:ok, opts} <- set_filename_opt(opts, path),
          bin = File.read!(path) do
       decode!(bin, opts)
-    else
-      {:error, {:badarg, {:invalid_filename, f}}} ->
-        raise ArgumentError,
-              "invalid value for :filename: '#{inspect(f)}' must be a binary!"
     end
   end
 
@@ -118,6 +116,9 @@ defmodule Toml.Decoder do
     with {:ok, opts} <- set_filename_opt(opts, path),
          {:ok, bin} <- File.read(path) do
       decode(bin, opts)
+    else
+      {:error, reason} ->
+        {:error, "unable to open file '#{Path.relative_to_cwd(path)}': #{inspect reason}"}
     end
   end
 
@@ -126,11 +127,8 @@ defmodule Toml.Decoder do
       nil ->
         {:ok, Keyword.put(opts, :filename, default)}
 
-      name when is_binary(name) ->
+      _name ->
         {:ok, opts}
-
-      invalid ->
-        {:error, {:badarg, {:invalid_filename, invalid}}}
     end
   end
 
@@ -138,12 +136,8 @@ defmodule Toml.Decoder do
 
   @spec do_decode(Lexer.t(), binary, Document.t()) :: {:ok, Document.t()} | Lexer.lexer_err()
   defp do_decode(lexer, original, %Document{} = doc) do
-    case Lexer.pop(lexer) do
-      {:error, _reason, _skip, _lines} = err ->
-        err
-
-      {:ok, {type, skip, data, lines}} ->
-        handle_token(lexer, original, doc, type, skip, data, lines)
+    with {:ok, {type, skip, data, lines}} <- Lexer.pop(lexer) do
+      handle_token(lexer, original, doc, type, skip, data, lines)
     end
   end
 
@@ -466,14 +460,8 @@ defmodule Toml.Decoder do
 
   defp maybe_integer(lexer, parts) do
     case Lexer.pop(lexer) do
-      {:error, _, skip, lines} ->
-        # Integer
-        with {:ok, _} = result <- iodata_to_integer(parts) do
-          result
-        else
-          {:error, reason} ->
-            {:error, reason, skip, lines}
-        end
+      {:error, _, _, _} = err ->
+        err
 
       {:ok, {?., _, _, _}} ->
         # Float
@@ -557,9 +545,6 @@ defmodule Toml.Decoder do
           {:error, reason} ->
             {:error, reason, skip, lines}
         end
-
-      {:ok, {type, skip, data, lines}} ->
-        {:error, {:invalid_token, {type, data}}, skip, lines}
     end
   end
 
