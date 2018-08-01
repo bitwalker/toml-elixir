@@ -2,27 +2,27 @@ defmodule Toml.Test do
   use ExUnit.Case
 
   import Toml.Test.Assertions
-  
+
   describe "decoding from various sources" do
     test "decode" do
       input = File.read!(Path.join([__DIR__, "fixtures", "0.5.0.toml"]))
       assert {:ok, _} = Toml.decode(input)
       assert %{"integer" => 2} = Toml.decode!(input)
     end
-    
+
     test "decode_stream" do
       input = File.stream!(Path.join([__DIR__, "fixtures", "0.5.0.toml"]))
       assert {:ok, _} = Toml.decode_stream(input)
       assert %{"integer" => 2} = Toml.decode_stream!(input)
     end
-    
+
     test "decode_file" do
       input = Path.join([__DIR__, "fixtures", "0.5.0.toml"])
       assert {:ok, _} = Toml.decode_file(input)
       assert %{"integer" => 2} = Toml.decode_file!(input)
     end
   end
-  
+
   describe "errors" do
     test "invalid filename" do
       assert {:error, "invalid :filename" <> _} = Toml.decode("[a]\na = 1", filename: :foo)
@@ -30,26 +30,31 @@ defmodule Toml.Test do
       assert {:error, "invalid :filename" <> _} = Toml.decode_file(file, filename: :foo)
       stream = ["[a]", "b = 2"] |> Stream.concat(["[b]", "a = 1"])
       assert {:error, "invalid :filename" <> _} = Toml.decode_stream(stream, filename: :foo)
-      assert_raise ArgumentError, "invalid :filename option ':foo', must be a binary!", fn -> 
+
+      assert_raise ArgumentError, "invalid :filename option ':foo', must be a binary!", fn ->
         Toml.decode!("[a]\na = 1", filename: :foo)
       end
-      assert_raise ArgumentError, "invalid :filename option ':foo', must be a binary!", fn -> 
+
+      assert_raise ArgumentError, "invalid :filename option ':foo', must be a binary!", fn ->
         Toml.decode_file!(file, filename: :foo)
       end
-      assert_raise ArgumentError, "invalid :filename option ':foo', must be a binary!", fn -> 
+
+      assert_raise ArgumentError, "invalid :filename option ':foo', must be a binary!", fn ->
         Toml.decode_stream!(stream, filename: :foo)
       end
     end
-    
+
     test "invalid path" do
-      assert {:error, "unable to open file 'noexist.toml'" <> _} = Toml.decode_file("noexist.toml")
+      assert {:error, "unable to open file 'noexist.toml'" <> _} =
+               Toml.decode_file("noexist.toml")
+
       assert_raise File.Error, fn ->
         Toml.decode_file!("noexist.toml")
       end
     end
-    
+
     test "formatting with crlf matches fomatting with lf" do
-      input_crlf = "[a]" <> <<?\r,?\n>> <> "b = 1" <> <<?\r, ?\n>> <> "[b] c = 1"
+      input_crlf = "[a]" <> <<?\r, ?\n>> <> "b = 1" <> <<?\r, ?\n>> <> "[b] c = 1"
       input_lf = "[a]" <> <<?\n>> <> "b = 1" <> <<?\n>> <> "[b] c = 1"
       assert {:error, {:invalid_toml, reason}} = Toml.decode(input_crlf)
       assert {:error, {:invalid_toml, ^reason}} = Toml.decode(input_lf)
@@ -90,7 +95,7 @@ defmodule Toml.Test do
       assert {:ok, %{"n" => ^expected}} = decode("n = 2018-06-30 12:30:58.030-07:00")
     end
   end
-  
+
   describe "numbers" do
     test "float1" do
       assert %{"f" => 1.0e7} = Toml.decode!("f = 1000e4")
@@ -117,7 +122,8 @@ defmodule Toml.Test do
     input = Path.join([__DIR__, "fixtures", "example.toml"])
 
     # Expected to fail
-    assert {:error, {:invalid_toml, "unable to convert " <> _}} = Toml.decode_file(input, keys: :atoms!)
+    assert {:error, {:invalid_toml, "unable to convert " <> _}} =
+             Toml.decode_file(input, keys: :atoms!)
   end
 
   test "0.5.0.toml" do

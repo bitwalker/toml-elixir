@@ -20,7 +20,7 @@ defmodule Toml.MixProject do
         "hex.publish": :docs,
         coveralls: :test,
         "coveralls.html": :test,
-        "coveralls.details": :test,
+        "coveralls.details": :test
       ],
       dialyzer: dialyzer(),
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -76,8 +76,8 @@ defmodule Toml.MixProject do
     [
       "compile-check": [
         "compile --warnings-as-errors",
-        "dialyzer --halt-exit-status",
-        "format --check-formatted --dry-run"
+        "format --check-formatted --dry-run",
+        "dialyzer --halt-exit-status"
       ],
       clean: ["clean", &clean/1],
       bench: ["bench.decoder", "bench.lexer"],
@@ -94,7 +94,7 @@ defmodule Toml.MixProject do
     [
       ignore_warnings: "dialyzer.ignore",
       flags: [:error_handling, :underspecs, :unmatched_returns],
-      plt_core_path: System.get_env("PLT_PATH") || System.get_env("MIX_HOME"),
+      plt_core_path: System.get_env("PLT_PATH") || System.get_env("MIX_HOME")
     ]
   end
 

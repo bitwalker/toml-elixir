@@ -66,6 +66,7 @@ defmodule Toml.Decoder do
   rescue
     err in [Toml.Error] ->
       {:error, {:invalid_toml, Exception.message(err)}}
+
     err in [ArgumentError] ->
       {:error, err.message}
   catch
@@ -118,7 +119,7 @@ defmodule Toml.Decoder do
       decode(bin, opts)
     else
       {:error, reason} ->
-        {:error, "unable to open file '#{Path.relative_to_cwd(path)}': #{inspect reason}"}
+        {:error, "unable to open file '#{Path.relative_to_cwd(path)}': #{inspect(reason)}"}
     end
   end
 

@@ -85,6 +85,7 @@ defmodule Toml.Provider do
         Application.put_env(app, k, v, persistent: true)
       end
     end
+
     :ok
   end
 
