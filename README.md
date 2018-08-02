@@ -194,7 +194,7 @@ And the following modules:
 
 ``` elixir
 defmodule Server do
-  defstruct [:ip, :ports]
+  defstruct [:name, :ip, :ports]
 end
 
 defmodule IPStringToCharlist do
