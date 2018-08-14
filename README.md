@@ -225,7 +225,7 @@ defmodule ServerMapToList do
   use Toml.Transform
   
   def transform(:servers, v) when is_map(v) do
-    for {name, server} <- v, do: struct(Server, Map.put(v, :name, name))
+    for {name, server} <- v, do: struct(Server, Map.put(server, :name, name))
   end
   def transform(_k, v), do: v
 end
