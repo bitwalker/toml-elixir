@@ -18,6 +18,12 @@ defmodule Toml.Transform do
           | Date.t()
           | Time.t()
 
+  def __using__(_) do
+    quote do
+      @behaviour unquote(__MODULE__)
+    end
+  end
+
   @doc """
   This function is invoked for every key/value pair in the document, in a depth-first,
   bottom-up, traversal of the document.
