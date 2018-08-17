@@ -50,7 +50,7 @@ This library is available on Hex as `:toml`, and can be added to your deps like 
 ```elixir
 def deps do
   [
-    {:toml, "~> 0.1.0"}
+    {:toml, "~> 0.3.0"}
   ]
 end
 ```
