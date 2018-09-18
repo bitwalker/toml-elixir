@@ -9,7 +9,7 @@ defmodule Toml.Test.ProviderTest do
 
     assert true == Application.get_env(:toml, :provider_active)
     assert {:ok, true} = Toml.Provider.get([:toml, :provider_active])
-    
+
     assert false == Application.get_env(:toml, :provider_disabled)
     assert {:ok, false} = Toml.Provider.get([:toml, :provider_active])
 
