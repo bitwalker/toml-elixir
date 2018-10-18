@@ -99,9 +99,7 @@ defmodule Toml.Provider do
 
   # For all other values, convert tables to keywords
   defp to_keyword2(map) when is_map(map) do
-    for {k, v} <- map, v2 = to_keyword2(v), into: [] do
-      {k, v2}
-    end
+    Enum.map(map, fn {k, v} -> {k, to_keyword2(v)} end)
   end
 
   # And leave all other values untouched
