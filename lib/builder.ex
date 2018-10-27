@@ -16,7 +16,7 @@ defmodule Toml.Builder do
   Starts a new table and sets the context for subsequent key/values
   """
   def push_table(%Document{} = doc, keypath) do
-    with {:ok, doc} = push_key(%Document{doc | open_table: nil}, keypath, %{}) do
+    with {:ok, doc} = push_key(%Document{doc | open_table: nil}, keypath, {:table_decl, %{}}) do
       # We're explicitly opening a new table
       doc |> open(keypath) |> to_result()
     end
@@ -50,7 +50,8 @@ defmodule Toml.Builder do
   child keys of existing tables is allowed. Table arrays considerably complicate this unfortunately.
   """
   def push_key(%Document{keys: ks} = doc, [key], value)
-      when is_map(value) and map_size(value) == 0 do
+      when is_map(value) and map_size(value) == 0
+      when is_tuple(value) and elem(value, 0) == :table_decl do
     # New table
     keypath = [key]
 
@@ -159,7 +160,8 @@ defmodule Toml.Builder do
   end
 
   def push_key(%Document{keys: ks} = doc, keypath, value)
-      when is_list(keypath) and is_map(value) do
+      when is_list(keypath) and is_map(value)
+      when is_list(keypath) and is_tuple(value) and elem(value, 0) == :table_decl do
     # Pushing a multi-part key with a table value
     keypath =
       case doc.open_table do
@@ -231,18 +233,16 @@ defmodule Toml.Builder do
     end
   end
 
-  def push_key_into_table({:table_array, array}, [key], value) when is_map(value) do
+  def push_key_into_table({:table_array, array}, keypath, {:table_decl, value}) do
     case array do
       [] ->
-        {:ok, {:table_array, [Map.put(%{}, key, value)]}}
-
+        {:ok, {:table_array, [value]}}
       [h | t] when is_map(h) ->
-        case Map.get(h, key) do
-          nil ->
-            {:ok, {:table_array, [Map.put(h, key, value) | t]}}
-
-          _ ->
-            {:error, :key_exists}
+        case push_key_into_table(h, keypath, {:table_decl, value}) do
+          {:ok, h2} ->
+            {:ok, {:table_array, [h2 | t]}}
+          {:error, _} = err ->
+            err
         end
     end
   end
@@ -286,14 +286,27 @@ defmodule Toml.Builder do
     end
   end
 
+  def push_key_into_table(ts, [key], {:table_decl, value}) do
+    case Map.get(ts, key) do
+      nil ->
+        {:ok, Map.put(ts, key, value)}
+
+      exists when is_map(exists) ->
+        # We're reopening a table, but we allow it as long as keys
+        # in that table don't override previously defined keys
+        {:ok, ts}
+      _exists ->
+        {:error, :key_exists}
+    end
+  end
+
   def push_key_into_table(ts, [key], value) when is_map(ts) do
     # Reached final table
     case Map.get(ts, key) do
       nil ->
         {:ok, Map.put(ts, key, value)}
 
-      {:table_array, items}
-      when is_list(items) and is_tuple(value) and elem(value, 0) == :table_array ->
+      {:table_array, items} when is_list(items) and is_tuple(value) and elem(value, 0) == :table_array ->
         # Appending to table array
         {:ok, Map.put(ts, key, {:table_array, [%{} | items]})}
 
