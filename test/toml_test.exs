@@ -131,6 +131,22 @@ defmodule Toml.Test do
     assert_toml_valid(input)
   end
 
+  test "issue #9" do
+    input = """
+    # config.toml
+
+    [myapp."MyApp.Endpoint".url]
+    scheme = "https"
+    host = "my-app.com"
+    port = 443
+
+    # Table defined after a subtable
+    [myapp."MyApp.Endpoint"]
+    secret_key_base = "secret"
+    """
+    assert {:error, {:invalid_toml, "cannot redefine key in path 'myapp.MyApp.Endpoint'"}} = Toml.decode(input)
+  end
+
   defp decode(str) when is_binary(str) do
     Toml.decode(str)
   end

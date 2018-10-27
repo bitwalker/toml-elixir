@@ -160,7 +160,7 @@ defmodule Toml.Builder do
 
   def push_key(%Document{keys: ks} = doc, keypath, value)
       when is_list(keypath) and is_map(value) do
-    # Pushing a multi-part key with an inline table value
+    # Pushing a multi-part key with a table value
     keypath =
       case doc.open_table do
         nil ->
@@ -301,7 +301,7 @@ defmodule Toml.Builder do
         # Pushing into table array
         {:ok, Map.put(ts, key, {:table_array, [value | items]})}
 
-      exists when is_map(exists) and is_map(value) ->
+      exists when is_map(exists) and is_map(value) and map_size(value) > 0 ->
         result =
           Enum.reduce(value, exists, fn {k, v}, acc ->
             case push_key_into_table(acc, [k], v) do
