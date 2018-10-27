@@ -144,7 +144,16 @@ defmodule Toml.Test do
     [myapp."MyApp.Endpoint"]
     secret_key_base = "secret"
     """
-    assert {:ok, %{"myapp" => %{"MyApp.Endpoint" => %{"secret_key_base" => "secret", "url" => %{"scheme" => "https", "host" => "my-app.com", "port" => 443}}}}} = Toml.decode(input)
+
+    assert {:ok,
+            %{
+              "myapp" => %{
+                "MyApp.Endpoint" => %{
+                  "secret_key_base" => "secret",
+                  "url" => %{"scheme" => "https", "host" => "my-app.com", "port" => 443}
+                }
+              }
+            }} = Toml.decode(input)
   end
 
   defp decode(str) when is_binary(str) do

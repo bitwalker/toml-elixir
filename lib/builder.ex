@@ -237,10 +237,12 @@ defmodule Toml.Builder do
     case array do
       [] ->
         {:ok, {:table_array, [value]}}
+
       [h | t] when is_map(h) ->
         case push_key_into_table(h, keypath, {:table_decl, value}) do
           {:ok, h2} ->
             {:ok, {:table_array, [h2 | t]}}
+
           {:error, _} = err ->
             err
         end
@@ -295,6 +297,7 @@ defmodule Toml.Builder do
         # We're reopening a table, but we allow it as long as keys
         # in that table don't override previously defined keys
         {:ok, ts}
+
       _exists ->
         {:error, :key_exists}
     end
@@ -306,7 +309,8 @@ defmodule Toml.Builder do
       nil ->
         {:ok, Map.put(ts, key, value)}
 
-      {:table_array, items} when is_list(items) and is_tuple(value) and elem(value, 0) == :table_array ->
+      {:table_array, items}
+      when is_list(items) and is_tuple(value) and elem(value, 0) == :table_array ->
         # Appending to table array
         {:ok, Map.put(ts, key, {:table_array, [%{} | items]})}
 
