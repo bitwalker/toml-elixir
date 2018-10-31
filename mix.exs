@@ -4,7 +4,7 @@ defmodule Toml.MixProject do
   def project do
     [
       app: :toml,
-      version: "0.5.0",
+      version: "0.5.1",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :test,
