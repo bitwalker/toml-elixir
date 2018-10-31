@@ -328,7 +328,7 @@ defmodule Toml.Lexer do
     do: lex_digits(rest, skip + 1, [c | acc], lines)
 
   defp lex_digits(rest, skip, acc, lines) do
-    bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
+    bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:digits, skip, bin, lines}}
   end
 
@@ -340,7 +340,7 @@ defmodule Toml.Lexer do
     do: lex_hex(rest, skip + 1, [c | acc], lines)
 
   defp lex_hex(rest, skip, acc, lines) do
-    bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
+    bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:hex, skip, bin, lines}}
   end
 
@@ -352,7 +352,7 @@ defmodule Toml.Lexer do
     do: lex_octal(rest, skip + 1, [c | acc], lines)
 
   defp lex_octal(rest, skip, acc, lines) do
-    bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
+    bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:octal, skip, bin, lines}}
   end
 
@@ -364,7 +364,7 @@ defmodule Toml.Lexer do
     do: lex_binary(rest, skip + 1, [c | acc], lines)
 
   defp lex_binary(rest, skip, acc, lines) do
-    bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
+    bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:binary, skip, bin, lines}}
   end
 
@@ -372,7 +372,7 @@ defmodule Toml.Lexer do
     do: lex_alpha(rest, skip + 1, [c | acc], lines)
 
   defp lex_alpha(rest, skip, acc, lines) do
-    bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
+    bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:alpha, skip, bin, lines}}
   end
 

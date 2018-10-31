@@ -61,12 +61,12 @@ defmodule Toml.Lexer.String do
 
   # Closing quotes
   defp lex_literal(:single, <<?\', rest::binary>>, skip, acc, lines) do
-    bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
+    bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:string, skip + 1, bin, lines}}
   end
 
   defp lex_literal(:multi, <<?\', ?\', ?\', rest::binary>>, skip, acc, lines) do
-    bin = acc |> Enum.reverse() |> IO.iodata_to_binary()
+    bin = acc |> Enum.reverse() |> IO.chardata_to_string()
     {:ok, rest, {:multiline_string, skip + 3, bin, lines}}
   end
 

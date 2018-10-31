@@ -1050,7 +1050,7 @@ defmodule Toml.Decoder do
   defp iodata_to_str(parts) do
     parts
     |> Enum.reverse()
-    |> IO.iodata_to_binary()
+    |> IO.chardata_to_string()
   end
 
   defp pop_skip(lexer, skip) do
