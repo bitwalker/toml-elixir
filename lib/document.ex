@@ -139,10 +139,12 @@ defmodule Toml.Document do
   defp to_map3(key, v, _keyfun, transform), do: transform.(key, v)
 
   # Convert the value of `:keys` to a key conversion function (if not already one)
+  @valid_keys_opts [:atoms, :atoms!, :strings, "(key :: String.t) -> term"]
   defp to_key_fun(:atoms), do: &to_atom/1
   defp to_key_fun(:atoms!), do: &to_existing_atom/1
   defp to_key_fun(:strings), do: nil
   defp to_key_fun(fun) when is_function(fun, 1), do: fun
+  defp to_key_fun(invalid), do: throw({:badarg, {:keys, invalid, @valid_keys_opts}})
 
   # Convert the given key (as binary) to an atom
   # Handle converting uppercase keys to module names rather than plain atoms

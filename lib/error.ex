@@ -104,6 +104,21 @@ defmodule Toml.Error do
     "cannot redefine key in path '#{key}'"
   end
 
+  def format_reason({:badarg, option, value, valid}) when is_list(valid) do
+    valid =
+      valid
+      |> Enum.map(fn
+        a when is_atom(a) ->
+          "#{inspect a}"
+        s when is_binary(s) ->
+          s
+        v ->
+          "#{inspect v}"
+      end)
+      |> Enum.join(", ")
+    "invalid value `#{inspect value}` for option #{inspect option}; must be one of [#{valid}]"
+  end
+
   def format_reason(reason), do: "#{inspect(reason)}"
 
   # Format a token in `{type, data}`, or `type` form into printable representation

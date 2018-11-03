@@ -52,6 +52,8 @@ defmodule Toml.Decoder do
     catch
       :throw, {:error, {:invalid_toml, reason}} ->
         raise Toml.Error, reason
+      :throw, {:badarg, {option, value, valid}} ->
+        raise Toml.Error, {:badarg, option, value, valid}
     after
       Lexer.stop(lexer)
     end
