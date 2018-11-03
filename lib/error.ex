@@ -109,14 +109,17 @@ defmodule Toml.Error do
       valid
       |> Enum.map(fn
         a when is_atom(a) ->
-          "#{inspect a}"
+          "#{inspect(a)}"
+
         s when is_binary(s) ->
           s
+
         v ->
-          "#{inspect v}"
+          "#{inspect(v)}"
       end)
       |> Enum.join(", ")
-    "invalid value `#{inspect value}` for option #{inspect option}; must be one of [#{valid}]"
+
+    "invalid value `#{inspect(value)}` for option #{inspect(option)}; must be one of [#{valid}]"
   end
 
   def format_reason(reason), do: "#{inspect(reason)}"
