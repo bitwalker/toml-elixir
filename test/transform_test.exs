@@ -5,6 +5,14 @@ defmodule Toml.Test.TransformTest do
     defstruct [:name, :ip, :ports]
   end
 
+  defmodule PortsToList do
+    def transform(:ports, v) when is_list(v) do
+      v |> Enum.map(fn port -> port[:number] end)
+    end
+
+    def transform(_k, v), do: v
+  end
+
   defmodule IPStringToCharlistTransform do
     def transform(:ip, v) when is_binary(v) do
       String.to_charlist(v)
@@ -55,14 +63,27 @@ defmodule Toml.Test.TransformTest do
     input = """
     [servers.alpha]
     ip = "192.168.1.1"
-    ports = [8080, 8081]
+
+    [[servers.alpha.ports]]
+    type = "UDP"
+    number = 8080
+    [[servers.alpha.ports]]
+    type = "UDP"
+    number = 8081
 
     [servers.beta]
     ip = "192.168.1.2"
-    ports = [8082, 8083]
+
+    [[servers.beta.ports]]
+    type = "UDP"
+    number = 8082
+    [[servers.beta.ports]]
+    type = "UDP"
+    number = 8083
     """
 
     transforms = [
+      PortsToList,
       IPStringToCharlistTransform,
       IPAddressTransform,
       ServerTransform
@@ -71,5 +92,7 @@ defmodule Toml.Test.TransformTest do
     assert {:ok, result} = Toml.decode(input, keys: :atoms, transforms: transforms)
     assert is_list(result[:servers])
     assert [%Server{name: :alpha, ip: {192, 168, 1, 1}} | _] = result[:servers]
+    alpha = result[:servers] |> List.first
+    assert [8080, 8081] = alpha.ports
   end
 end
