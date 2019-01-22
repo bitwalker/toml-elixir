@@ -121,7 +121,7 @@ defmodule Toml.Document do
     transform.(key, list)
   end
 
-  defp to_map3(key, {:table_array, list}, keyfun, nil) do
+  defp to_map3(_key, {:table_array, list}, keyfun, nil) do
     for v <- Enum.reverse(list) do
       to_map2(v, keyfun, nil)
     end

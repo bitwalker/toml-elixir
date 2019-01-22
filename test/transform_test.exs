@@ -92,7 +92,7 @@ defmodule Toml.Test.TransformTest do
     assert {:ok, result} = Toml.decode(input, keys: :atoms, transforms: transforms)
     assert is_list(result[:servers])
     assert [%Server{name: :alpha, ip: {192, 168, 1, 1}} | _] = result[:servers]
-    alpha = result[:servers] |> List.first
+    alpha = result[:servers] |> List.first()
     assert [8080, 8081] = alpha.ports
   end
 end
