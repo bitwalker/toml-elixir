@@ -1,10 +1,13 @@
 defmodule Toml.MixProject do
   use Mix.Project
 
+  @version "0.5.2"
+  @source_url "https://github.com/bitwalker/toml-elixir"
+
   def project do
     [
       app: :toml,
-      version: "0.5.2",
+      version: @version,
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :test,
@@ -23,6 +26,7 @@ defmodule Toml.MixProject do
         "coveralls.details": :test
       ],
       dialyzer: dialyzer(),
+      docs: docs(),
       elixirc_paths: elixirc_paths(Mix.env()),
       escript: escript(Mix.env()),
       test_coverage: [tool: ExCoveralls]
@@ -58,7 +62,15 @@ defmodule Toml.MixProject do
       files: ["lib", "mix.exs", "README.md", "LICENSE"],
       maintainers: ["Paul Schoenfelder"],
       licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/bitwalker/toml-elixir"}
+      links: %{"GitHub" => @source_url}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "Toml",
+      source_url: @source_url,
+      source_ref: @version
     ]
   end
 
