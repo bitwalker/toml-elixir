@@ -68,6 +68,7 @@ defmodule Toml.Provider do
 
     with {:ok, expanded} <- expand_path(path) do
       opts = Keyword.put(opts, :path, expanded)
+
       if is_distillery_env?() do
         # When running under Distillery, init performs load
         load([], opts)
@@ -101,7 +102,6 @@ defmodule Toml.Provider do
         {:ok, val}
     end
   end
-
 
   if @has_config_api do
     defp persist(config, keyword) when is_list(keyword) do
