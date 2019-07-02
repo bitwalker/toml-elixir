@@ -249,10 +249,27 @@ the tree before the branches; as shown in the example above, this means the
 `:ip` key is converted to an address tuple before the `:servers` key is
 transformed into a list of `Server` structs.
 
+## Using with Elixir Releases (1.9+)
+
+To use this library as a configuration provider in Elixir, use the following
+example of how one might use it in their release configuration, and tailor it
+to your needs:
+
+```elixir
+config_providers: [
+  {Toml.Provider, [
+    path: {:system, "XDG_CONFIG_DIR", "myapp.toml",
+    transforms: [...]
+  ]}
+]
+```
+
+See the "Using as a Config Provider" section for more info.
+
 ## Using with Distillery
 
-To use this library as a configuration provider in Distillery, add the following
-to your `rel/config.exs`:
+Like the above, use the following example as a guideline for how you use this
+in your own release configuration (i.e. in `rel/config.exs`):
 
 ``` elixir
 release :myapp do
@@ -263,7 +280,9 @@ release :myapp do
 end
 ```
 
-This will result in `Toml.Provider` being invoked during boot, at which point it
+## Using as a Config Provider
+
+The usages described above will result in `Toml.Provider` being invoked during boot, at which point it
 will evaluate the given path and read the TOML file it finds. If one is not
 found, or is not accessible, the provider will raise an error, and the boot
 sequence will terminate unsuccessfully. If it succeeds, it persists settings in

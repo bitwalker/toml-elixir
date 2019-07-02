@@ -1,9 +1,10 @@
 defmodule Toml.Provider do
   @moduledoc """
-  This module provides an implementation of Distilery's configuration provider
-  behavior, so that TOML files can be used for configuration in releases.
+  This module provides an implementation of both the Distilery and Elixir 
+  config provider behaviours, so that TOML files can be used for configuration 
+  in releases.
 
-  ## Usage
+  ## Distillery Usage
 
   Add the following to your `rel/config.exs`
 
@@ -13,6 +14,15 @@ defmodule Toml.Provider do
           {Toml.Provider, [path: "${XDG_CONFIG_DIR}/myapp.toml", transforms: [...]]}
         ]
       end
+
+  ## Elixir Usage
+
+      config_providers: [
+        {Toml.Provider, [
+          path: {:system, "XDG_CONFIG_DIR", "myapp.toml",
+          transforms: [...]
+        ]}
+      ]
 
   This will result in `Toml.Provider` being invoked during boot, at which point it
   will evaluate the given path and read the TOML file it finds. If one is not
@@ -36,6 +46,12 @@ defmodule Toml.Provider do
       key types are ignored, as it results in an invalid config structure
 
   """
+  if Version.match?(Version.parse!(System.version()), ">= 1.9.0") do
+    @behaviour Config.Provider
+    @has_config_api true
+  else
+    @has_config_api false
+  end
 
   @doc false
   def init(opts) when is_list(opts) do
@@ -50,14 +66,27 @@ defmodule Toml.Provider do
           Keyword.put(opts, :keys, :atoms)
       end
 
-    with {:ok, expanded} <- expand_path(path),
-         map = Toml.decode_file!(expanded, opts),
-         keyword when is_list(keyword) <- to_keyword(map) do
-      persist(keyword)
+    with {:ok, expanded} <- expand_path(path) do
+      opts = Keyword.put(opts, :path, expanded)
+      if is_distillery_env?() do
+        # When running under Distillery, init performs load
+        load([], opts)
+        :ok
+      else
+        # With 1.9 releases, init just preps arguments for `load`
+        opts
+      end
     else
       {:error, reason} ->
         exit(reason)
     end
+  end
+
+  @doc false
+  def load(config, opts) when is_list(opts) do
+    path = Keyword.fetch!(opts, :path)
+    map = Toml.decode_file!(path, opts)
+    persist(config, to_keyword(map))
   end
 
   @doc false
@@ -73,20 +102,48 @@ defmodule Toml.Provider do
     end
   end
 
-  defp persist(keyword) when is_list(keyword) do
-    # For each app
-    for {app, app_config} <- keyword do
-      # Get base config
-      base = Application.get_all_env(app)
-      # Merge this app's TOML config over the base config
-      merged = deep_merge(base, app_config)
-      # Persist key/value pairs for this app
-      for {k, v} <- merged do
-        Application.put_env(app, k, v, persistent: true)
+
+  if @has_config_api do
+    defp persist(config, keyword) when is_list(keyword) do
+      Config.Reader.merge(config, keyword)
+    end
+  else
+    defp persist(config, keyword) when is_list(keyword) do
+      # For each app
+      for {app, app_config} <- keyword do
+        # Get base config
+        base = Application.get_all_env(app)
+        base = deep_merge(base, Keyword.get(config, app, []))
+        # Merge this app's TOML config over the base config
+        merged = deep_merge(base, app_config)
+        # Persist key/value pairs for this app
+        for {k, v} <- merged do
+          Application.put_env(app, k, v, persistent: true)
+        end
       end
     end
 
-    :ok
+    defp deep_merge(a, b) when is_list(a) and is_list(b) do
+      if Keyword.keyword?(a) and Keyword.keyword?(b) do
+        Keyword.merge(a, b, &deep_merge/3)
+      else
+        b
+      end
+    end
+
+    defp deep_merge(_k, a, b) when is_list(a) and is_list(b) do
+      if Keyword.keyword?(a) and Keyword.keyword?(b) do
+        Keyword.merge(a, b, &deep_merge/3)
+      else
+        b
+      end
+    end
+
+    defp deep_merge(_k, a, b) when is_map(a) and is_map(b) do
+      Map.merge(a, b, &deep_merge/3)
+    end
+
+    defp deep_merge(_k, _a, b), do: b
   end
 
   # At the top level, convert the map to a keyword list of keyword lists
@@ -105,28 +162,6 @@ defmodule Toml.Provider do
   # And leave all other values untouched
   defp to_keyword2(term), do: term
 
-  defp deep_merge(a, b) when is_list(a) and is_list(b) do
-    if Keyword.keyword?(a) and Keyword.keyword?(b) do
-      Keyword.merge(a, b, &deep_merge/3)
-    else
-      b
-    end
-  end
-
-  defp deep_merge(_k, a, b) when is_list(a) and is_list(b) do
-    if Keyword.keyword?(a) and Keyword.keyword?(b) do
-      Keyword.merge(a, b, &deep_merge/3)
-    else
-      b
-    end
-  end
-
-  defp deep_merge(_k, a, b) when is_map(a) and is_map(b) do
-    Map.merge(a, b, &deep_merge/3)
-  end
-
-  defp deep_merge(_k, _a, b), do: b
-
   def expand_path(path) when is_binary(path) do
     case expand_path(path, <<>>) do
       {:ok, p} ->
@@ -134,6 +169,12 @@ defmodule Toml.Provider do
 
       {:error, _} = err ->
         err
+    end
+  end
+
+  if @has_config_api do
+    def expand_path(path) do
+      {:ok, Config.Provider.resolve_config_path!(path)}
     end
   end
 
@@ -165,5 +206,13 @@ defmodule Toml.Provider do
 
   defp expand_var(<<c::utf8, rest::binary>>, acc) do
     expand_var(rest, <<acc::binary, c::utf8>>)
+  end
+
+  defp is_distillery_env? do
+    if @has_config_api do
+      Code.ensure_loaded?(Distillery.Releases.Config.Provider)
+    else
+      true
+    end
   end
 end
