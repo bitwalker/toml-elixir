@@ -5,7 +5,7 @@ defmodule Toml.Test.ProviderTest do
     file = Path.join([__DIR__, "fixtures", "provider.toml"])
     opts = Toml.Provider.init(path: file)
     config = Toml.Provider.load([], opts)
-    assert "success!" = Keyword.get(config, :toml, :provider_test)
+    assert "success!" = get_in(config, [:toml, :provider_test])
     Application.put_all_env(config)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
 
