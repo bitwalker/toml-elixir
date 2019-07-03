@@ -3,8 +3,10 @@ defmodule Toml.Test.ProviderTest do
 
   test "can initialize provider from sample toml" do
     file = Path.join([__DIR__, "fixtures", "provider.toml"])
-    assert :ok = Toml.Provider.init(path: file)
-    assert "success!" = Application.get_env(:toml, :provider_test)
+    opts = Toml.Provider.init(path: file)
+    config = Toml.Provider.load([], opts)
+    assert "success!" = Keyword.get(config, :toml, :provider_test)
+    Application.put_all_env(config)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
 
     assert true == Application.get_env(:toml, :provider_active)
@@ -16,7 +18,9 @@ defmodule Toml.Test.ProviderTest do
     Application.put_env(:toml, :provider_test, nil)
     assert nil == Application.get_env(:toml, :provider_test)
 
-    assert :ok = Toml.Provider.init(path: file, keys: :atoms!)
+    opts = Toml.Provider.init(path: file, keys: :atoms!)
+    config = Toml.Provider.load(config, opts)
+    Application.put_all_env(config)
     assert "success!" = Application.get_env(:toml, :provider_test)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
 
@@ -24,7 +28,8 @@ defmodule Toml.Test.ProviderTest do
     Application.put_env(:toml, :nested, foo: "baz")
     assert :preexisting == Application.get_env(:toml, :provider_test)
 
-    assert :ok = Toml.Provider.init(path: file)
+    opts = Toml.Provider.init(path: file)
+    config = Toml.Provider.load(config, opts)
     assert "success!" = Application.get_env(:toml, :provider_test)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
   end
