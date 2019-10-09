@@ -30,12 +30,14 @@ defmodule Toml.Test.ProviderTest do
 
     opts = Toml.Provider.init(path: file)
     config = Toml.Provider.load(config, opts)
+    Application.put_all_env(config)
+
     assert "success!" = Application.get_env(:toml, :provider_test)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
   end
 
   test "exit is triggered if path provided has invalid expansion" do
-    assert catch_exit(Toml.Provider.init(path: "path/to/${HOME")) == :unclosed_var_expansion
+    assert catch_exit(Toml.Provider.load([], path: "path/to/${HOME")) == :unclosed_var_expansion
   end
 
   test "can expand paths" do

@@ -1,7 +1,7 @@
 defmodule Toml.Provider do
   @moduledoc """
-  This module provides an implementation of both the Distilery and Elixir 
-  config provider behaviours, so that TOML files can be used for configuration 
+  This module provides an implementation of both the Distilery and Elixir
+  config provider behaviours, so that TOML files can be used for configuration
   in releases.
 
   ## Distillery Usage
@@ -19,7 +19,7 @@ defmodule Toml.Provider do
 
       config_providers: [
         {Toml.Provider, [
-          path: {:system, "XDG_CONFIG_DIR", "myapp.toml",
+          path: {:system, "XDG_CONFIG_DIR", "myapp.toml"},
           transforms: [...]
         ]}
       ]
@@ -42,7 +42,7 @@ defmodule Toml.Provider do
   but there are two main differences:
 
     * `:path` (required) - sets the path to the TOML file to load config from
-    * `:keys` - defaults to `:atoms`, but can be set to `:atoms!` if desired, all other 
+    * `:keys` - defaults to `:atoms`, but can be set to `:atoms!` if desired, all other
       key types are ignored, as it results in an invalid config structure
 
   """
@@ -55,8 +55,6 @@ defmodule Toml.Provider do
 
   @doc false
   def init(opts) when is_list(opts) do
-    path = Keyword.fetch!(opts, :path)
-
     opts =
       case Keyword.get(opts, :keys) do
         a when a in [:atoms, :atoms!] ->
@@ -66,28 +64,29 @@ defmodule Toml.Provider do
           Keyword.put(opts, :keys, :atoms)
       end
 
-    with {:ok, expanded} <- expand_path(path) do
-      opts = Keyword.put(opts, :path, expanded)
-
-      if is_distillery_env?() do
-        # When running under Distillery, init performs load
-        load([], opts)
-        :ok
-      else
-        # With 1.9 releases, init just preps arguments for `load`
-        opts
-      end
+    if is_distillery_env?() do
+      # When running under Distillery, init performs load
+      load([], opts)
+      opts
     else
-      {:error, reason} ->
-        exit(reason)
+      # With 1.9 releases, init just preps arguments for `load`
+      opts
     end
   end
 
   @doc false
   def load(config, opts) when is_list(opts) do
     path = Keyword.fetch!(opts, :path)
-    map = Toml.decode_file!(path, opts)
-    persist(config, to_keyword(map))
+    # path expansion should happen in load rather than init, otherwise
+    # in 1.9 releases using a {:system, env_var, path} tuple an error
+    # will be raised if the env var is not set in the build environment
+    with {:ok, path} <- expand_path(path) do
+      map = Toml.decode_file!(path, opts)
+      persist(config, to_keyword(map))
+    else
+      {:error, reason} ->
+        exit(reason)
+    end
   end
 
   @doc false
@@ -212,7 +211,7 @@ defmodule Toml.Provider do
     if @has_config_api do
       Code.ensure_loaded?(Distillery.Releases.Config.Provider)
     else
-      true
+      false
     end
   end
 end
