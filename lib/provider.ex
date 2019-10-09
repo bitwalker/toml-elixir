@@ -66,7 +66,7 @@ defmodule Toml.Provider do
 
     if is_distillery_env?() do
       # When running under Distillery, init performs load
-      load([], opts)
+      _ = load([], opts)
       :ok
     else
       # With 1.9 releases, init just preps arguments for `load`
@@ -207,11 +207,11 @@ defmodule Toml.Provider do
     expand_var(rest, <<acc::binary, c::utf8>>)
   end
 
-  defp is_distillery_env? do
-    if @has_config_api do
+  if @has_config_api do
+    defp is_distillery_env? do
       Code.ensure_loaded?(Distillery.Releases.Config.Provider)
-    else
-      true
     end
+  else
+    defp is_distillery_env?, do: true
   end
 end
