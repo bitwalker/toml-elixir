@@ -212,7 +212,7 @@ defmodule Toml.Provider do
     if Version.match?(Version.parse!(System.version()), ">= 1.9.0") do
       Code.ensure_loaded?(Distillery.Releases.Config.Provider)
     else
-      false
+      true
     end
   end
 end
