@@ -6,8 +6,12 @@ elixir:
   - 1.8
   - 1.9
 otp_release:
-  - 21.0
-  - 22.0
+  - 21.3
+  - 22.1
+matrix:
+  exclude:
+  - otp_release: 22.1
+    elixir: 1.6
 env:
   - "PLT_DIR=$HOME/.plt"
 cache:
