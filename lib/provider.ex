@@ -208,7 +208,7 @@ defmodule Toml.Provider do
   end
 
   defp is_distillery_env? do
-    if @has_config_api do
+    if Version.match?(Version.parse!(System.version()), ">= 1.9.0") do
       Code.ensure_loaded?(Distillery.Releases.Config.Provider)
     else
       false
