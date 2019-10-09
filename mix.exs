@@ -105,7 +105,7 @@ defmodule Toml.MixProject do
   defp dialyzer do
     [
       ignore_warnings: "dialyzer.ignore",
-      flags: [:error_handling, :underspecs, :unmatched_returns],
+      flags: [:error_handling, :underspecs],
       plt_core_path: System.get_env("PLT_PATH") || System.get_env("MIX_HOME")
     ]
   end
