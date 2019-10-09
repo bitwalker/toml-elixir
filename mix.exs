@@ -44,7 +44,7 @@ defmodule Toml.MixProject do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: [:docs]},
-      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev, :test], runtime: false},
       {:benchee, "~> 1.0", only: [:bench]},
       {:benchee_html, "~> 1.0", only: [:bench]},
       {:jason, "~> 1.0", only: [:test, :bench]},
@@ -89,7 +89,7 @@ defmodule Toml.MixProject do
       "compile-check": [
         "compile --warnings-as-errors",
         "format --check-formatted --dry-run",
-        "dialyzer --halt-exit-status"
+        "dialyzer --format dialyxir"
       ],
       clean: ["clean", &clean/1],
       bench: ["bench.decoder", "bench.lexer"],
