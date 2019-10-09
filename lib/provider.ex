@@ -46,11 +46,10 @@ defmodule Toml.Provider do
       key types are ignored, as it results in an invalid config structure
 
   """
-  if Version.match?(Version.parse!(System.version()), ">= 1.9.0") do
+  has_config_api? = Version.match?(Version.parse!(System.version()), ">= 1.9.0")
+
+  if has_config_api? do
     @behaviour Config.Provider
-    @has_config_api true
-  else
-    @has_config_api false
   end
 
   @doc false
@@ -103,7 +102,7 @@ defmodule Toml.Provider do
     end
   end
 
-  if @has_config_api do
+  if has_config_api? do
     defp persist(config, keyword) when is_list(keyword) do
       Config.Reader.merge(config, keyword)
     end
@@ -120,6 +119,9 @@ defmodule Toml.Provider do
         for {k, v} <- merged do
           Application.put_env(app, k, v, persistent: true)
         end
+
+        # Return merged config
+        {app, merged}
       end
     end
 
@@ -172,7 +174,7 @@ defmodule Toml.Provider do
     end
   end
 
-  if @has_config_api do
+  if has_config_api? do
     def expand_path(path) do
       {:ok, Config.Provider.resolve_config_path!(path)}
     end

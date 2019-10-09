@@ -6,7 +6,7 @@ defmodule Toml.Test.ProviderTest do
     opts = Toml.Provider.init(path: file)
     config = Toml.Provider.load([], opts)
     assert "success!" = get_in(config, [:toml, :provider_test])
-    Application.put_all_env(config)
+    put_all_env(config)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
 
     assert true == Application.get_env(:toml, :provider_active)
@@ -20,7 +20,7 @@ defmodule Toml.Test.ProviderTest do
 
     opts = Toml.Provider.init(path: file, keys: :atoms!)
     config = Toml.Provider.load(config, opts)
-    Application.put_all_env(config)
+    put_all_env(config)
     assert "success!" = Application.get_env(:toml, :provider_test)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
 
@@ -30,7 +30,7 @@ defmodule Toml.Test.ProviderTest do
 
     opts = Toml.Provider.init(path: file)
     config = Toml.Provider.load(config, opts)
-    Application.put_all_env(config)
+    put_all_env(config)
 
     assert "success!" = Application.get_env(:toml, :provider_test)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
@@ -47,5 +47,15 @@ defmodule Toml.Test.ProviderTest do
 
   test "friendly error if bad expansion provided" do
     assert {:error, _} = Toml.Provider.expand_path("/path/to/${HOME")
+  end
+
+  defp put_all_env(config) do
+    if Version.match?(Version.parse!(System.version()), ">= 1.9.0") do
+      Application.put_all_env(config)
+    else
+      for {app, app_config} <- config, {key, value} <- app_config do
+        Application.put_env(app, key, value)
+      end
+    end
   end
 end
