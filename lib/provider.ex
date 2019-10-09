@@ -66,8 +66,7 @@ defmodule Toml.Provider do
 
     if is_distillery_env?() do
       # When running under Distillery, init performs load
-      _ = load([], opts)
-      :ok
+      load([], opts)
     else
       # With 1.9 releases, init just preps arguments for `load`
       opts
