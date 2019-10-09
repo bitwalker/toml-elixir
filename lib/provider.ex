@@ -53,7 +53,6 @@ defmodule Toml.Provider do
   end
 
   @doc false
-  @spec init(Keyword.t()) :: Keyword.t() | no_return
   def init(opts) when is_list(opts) do
     opts =
       case Keyword.get(opts, :keys) do
@@ -216,5 +215,11 @@ defmodule Toml.Provider do
     else
       true
     end
+  rescue
+    _ ->
+      case :erlang.phash2(1, 1) do
+        0 -> true
+        _ -> false
+      end
   end
 end
