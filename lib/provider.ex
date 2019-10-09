@@ -54,6 +54,7 @@ defmodule Toml.Provider do
   end
 
   @doc false
+  @spec init(Keyword.t()) :: Keyword.t() | no_return
   def init(opts) when is_list(opts) do
     opts =
       case Keyword.get(opts, :keys) do
