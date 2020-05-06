@@ -103,7 +103,9 @@ defmodule Toml.Provider do
 
   if has_config_api? do
     defp persist(config, keyword) when is_list(keyword) do
-      Config.Reader.merge(config, keyword)
+      config = Config.Reader.merge(config, keyword)
+      Application.put_all_env(config, persistent: true)
+      config
     end
   else
     defp persist(config, keyword) when is_list(keyword) do
