@@ -101,53 +101,45 @@ defmodule Toml.Provider do
     end
   end
 
-  if has_config_api? do
-    defp persist(config, keyword) when is_list(keyword) do
-      config = Config.Reader.merge(config, keyword)
-      Application.put_all_env(config, persistent: true)
-      config
-    end
-  else
-    defp persist(config, keyword) when is_list(keyword) do
-      # For each app
-      for {app, app_config} <- keyword do
-        # Get base config
-        base = Application.get_all_env(app)
-        base = deep_merge(base, Keyword.get(config, app, []))
-        # Merge this app's TOML config over the base config
-        merged = deep_merge(base, app_config)
-        # Persist key/value pairs for this app
-        for {k, v} <- merged do
-          Application.put_env(app, k, v, persistent: true)
-        end
-
-        # Return merged config
-        {app, merged}
+  defp persist(config, keyword) when is_list(keyword) do
+    # For each app
+    for {app, app_config} <- keyword do
+      # Get base config
+      base = Application.get_all_env(app)
+      base = deep_merge(base, Keyword.get(config, app, []))
+      # Merge this app's TOML config over the base config
+      merged = deep_merge(base, app_config)
+      # Persist key/value pairs for this app
+      for {k, v} <- merged do
+        Application.put_env(app, k, v, persistent: true)
       end
-    end
 
-    defp deep_merge(a, b) when is_list(a) and is_list(b) do
-      if Keyword.keyword?(a) and Keyword.keyword?(b) do
-        Keyword.merge(a, b, &deep_merge/3)
-      else
-        b
-      end
+      # Return merged config
+      {app, merged}
     end
-
-    defp deep_merge(_k, a, b) when is_list(a) and is_list(b) do
-      if Keyword.keyword?(a) and Keyword.keyword?(b) do
-        Keyword.merge(a, b, &deep_merge/3)
-      else
-        b
-      end
-    end
-
-    defp deep_merge(_k, a, b) when is_map(a) and is_map(b) do
-      Map.merge(a, b, &deep_merge/3)
-    end
-
-    defp deep_merge(_k, _a, b), do: b
   end
+
+  defp deep_merge(a, b) when is_list(a) and is_list(b) do
+    if Keyword.keyword?(a) and Keyword.keyword?(b) do
+      Keyword.merge(a, b, &deep_merge/3)
+    else
+      b
+    end
+  end
+
+  defp deep_merge(_k, a, b) when is_list(a) and is_list(b) do
+    if Keyword.keyword?(a) and Keyword.keyword?(b) do
+      Keyword.merge(a, b, &deep_merge/3)
+    else
+      b
+    end
+  end
+
+  defp deep_merge(_k, a, b) when is_map(a) and is_map(b) do
+    Map.merge(a, b, &deep_merge/3)
+  end
+
+  defp deep_merge(_k, _a, b), do: b
 
   # At the top level, convert the map to a keyword list of keyword lists
   # Keys with no children (i.e. keys which are not tables) are dropped
