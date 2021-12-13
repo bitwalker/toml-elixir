@@ -51,6 +51,7 @@ defmodule Toml.Test.Assertions do
           do_deep_equal(av, bv)
         end
       end
+      |> Enum.all?()
     else
       false
     end
@@ -66,6 +67,7 @@ defmodule Toml.Test.Assertions do
       for {ai, bi} <- Enum.zip(asort, bsort) do
         do_deep_equal(ai, bi)
       end
+      |> Enum.all?()
     else
       a == b
     end
