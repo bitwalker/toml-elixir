@@ -1,12 +1,20 @@
 # TOML for Elixir
 
 [![Master](https://travis-ci.com/bitwalker/toml-elixir.svg?branch=master)](https://travis-ci.com/bitwalker/toml-elixir)
-[![Hex.pm Version](http://img.shields.io/hexpm/v/toml.svg?style=flat)](https://hex.pm/packages/toml)
+[![Hex Version](https://img.shields.io/hexpm/v/toml.svg?style=flat)](https://hex.pm/packages/toml)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg?style=flat)](https://hexdocs.pm/toml/)
+[![Total Download](https://img.shields.io/hexpm/dt/toml.svg?style=flat)](https://hex.pm/packages/toml)
+[![License](https://img.shields.io/hexpm/l/toml-elixir.svg?style=flat)](https://github.com/bitwalker/toml-elixir/blob/master/LICENSE)
+[![Last Updated](https://img.shields.io/github/last-commit/bitwalker/toml-elixir.svg?style=flat)](https://github.com/bitwalker/toml-elixir/commits/master)
 
-This is a TOML library for Elixir projects. It is compliant with version 0.5.0 of the
-[official TOML specification](https://github.com/toml-lang/toml). You can find a
-brief overview of the feature set below, but you are encouraged to read the full
-spec at the link above (it is short and easy to read!).
+<!-- MDOC !-->
+
+This is a TOML library for Elixir projects.
+
+It is compliant with version 0.5.0 of the [official TOML
+specification](https://github.com/toml-lang/toml). You can find a brief
+overview of the feature set below, but you are encouraged to read the full spec
+at the link above (it is short and easy to read!).
 
 ## Features
 
@@ -90,7 +98,7 @@ the same base type (e.g. integer and string respectively in the examples given).
 Certain features of TOML have implementation-specific behavior:
 
 - `-inf`, `inf`, and `+inf` are all valid infinity values in TOML.
-  In Erlang/Elixir, these don't have exact representations. Instead, by convention, 
+  In Erlang/Elixir, these don't have exact representations. Instead, by convention,
   `:infinity` is used for positive infinity, as atoms are always larger than integers
   when using comparison operators, so `:infinity > <any integer>` will always be true.
   However, negative infinity cannot be represented, as numbers are always considered smaller
@@ -99,7 +107,7 @@ Certain features of TOML have implementation-specific behavior:
   in comparisons/sorting/etc.
 - `-nan`, `nan`, and `+nan` are all valid NaN (not a number) values in TOML. In Erlang/Elixir,
   NaN is traditionally represented with `:nan`, but there is no representation for negative NaN,
-  and no API actually produces `:nan`, instead invalid numbers typically raise errors, in the typical 
+  and no API actually produces `:nan`, instead invalid numbers typically raise errors, in the typical
   spirit of "let it crash" in the face of errors. For purposes of preserving type information though,
   we use the `:nan` convention, and `:negative_nan` for -NaN. You will need to take care to deal with
   these values manually if the values need to be preserved.
@@ -180,7 +188,7 @@ expected '\n', but got 'b' in nofile on line 2:
 Support for extending value conversions is provided by the `Toml.Transform`
 behavior. An example is shown below:
 
-Given the follwing TOML document:
+Given the following TOML document:
 
 ``` toml
 [servers.alpha]
@@ -201,7 +209,7 @@ end
 
 defmodule IPStringToCharlist do
   use Toml.Transform
-  
+
   def transform(:ip, v) when is_binary(v) do
     String.to_charlist(v)
   end
@@ -210,7 +218,7 @@ end
 
 defmodule CharlistToIP do
   use Toml.Transform
-  
+
   def transform(:ip, v) when is_list(v) do
     case :inet.parse_ipv4_address(v) do
       {:ok, address} ->
@@ -225,7 +233,7 @@ end
 
 defmodule ServerMapToList do
   use Toml.Transform
-  
+
   def transform(:servers, v) when is_map(v) do
     for {name, server} <- v, do: struct(Server, Map.put(server, :name, name))
   end
@@ -323,6 +331,8 @@ level = "info"
 format = "[$level] $message \n"
 ```
 
+<!-- MDOC !-->
+
 ## Roadmap
 
 - [x] Add benchmarking suite
@@ -330,6 +340,16 @@ format = "[$level] $message \n"
 - [ ] Optimize lexer to always send offsets to decoder, rather than only in some cases
 - [ ] Try to find pathological TOML files to test
 
-## License
+## Copyright and License
 
-This project is licensed Apache 2.0, see the `LICENSE` file in this repo for details.
+Copyright (c) 2018 Paul Schoenfelder
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

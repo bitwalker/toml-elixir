@@ -1,8 +1,8 @@
 defmodule Toml.MixProject do
   use Mix.Project
 
-  @version "0.6.2"
   @source_url "https://github.com/bitwalker/toml-elixir"
+  @version "0.6.2"
 
   def project do
     [
@@ -61,16 +61,21 @@ defmodule Toml.MixProject do
     [
       files: ["lib", "mix.exs", "README.md", "LICENSE"],
       maintainers: ["Paul Schoenfelder"],
-      licenses: ["Apache 2.0"],
+      licenses: ["Apache-2.0"],
       links: %{"GitHub" => @source_url}
     ]
   end
 
   defp docs do
     [
-      main: "Toml",
+      extras: [
+        LICENSE: [title: "License"],
+        "README.md": [title: "Overview"]
+      ],
+      main: "readme",
       source_url: @source_url,
-      source_ref: @version
+      source_ref: @version,
+      formatters: ["html"]
     ]
   end
 
