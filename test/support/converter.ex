@@ -50,14 +50,10 @@ defmodule Toml.Test.JsonConverter do
 
   # Empty lists are treated plainly
   defp to_typed_value([]), do: []
+
   # Array of structs (values)
   defp to_typed_value([%_{} | _] = list) do
     %{"type" => "array", "value" => Enum.map(list, &to_typed_value/1)}
-  end
-
-  # Table array
-  defp to_typed_value([h | _] = list) when is_map(h) do
-    for table <- list, do: to_typed_map(table)
   end
 
   # Array value
