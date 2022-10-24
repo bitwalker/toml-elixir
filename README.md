@@ -266,7 +266,7 @@ to your needs:
 ```elixir
 config_providers: [
   {Toml.Provider, [
-    path: {:system, "XDG_CONFIG_DIR", "myapp.toml",
+    path: {:system, "XDG_CONFIG_DIR", "myapp.toml"},
     transforms: [...]
   ]}
 ]

@@ -1,14 +1,14 @@
 defmodule Toml.MixProject do
   use Mix.Project
 
+  @version "0.7.0"
   @source_url "https://github.com/bitwalker/toml-elixir"
-  @version "0.6.2"
 
   def project do
     [
       app: :toml,
       version: @version,
-      elixir: "~> 1.6",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       consolidate_protocols: Mix.env() != :test,
       description: "An implementation of TOML for Elixir projects",
@@ -44,7 +44,7 @@ defmodule Toml.MixProject do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: [:docs]},
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:benchee, "~> 1.0", only: [:bench]},
       {:benchee_html, "~> 1.0", only: [:bench]},
       {:jason, "~> 1.0", only: [:test, :bench]},

@@ -749,16 +749,13 @@ defmodule Toml.Decoder do
         Lexer.advance(lexer)
         value(lexer)
 
-      {:ok, {?\[, skip, _, lines}} ->
+      {:ok, {?\[, _skip, _, _lines}} ->
         # Need to embellish some errors with line/col
         with {:ok, _} = ok <- array(lexer) do
           ok
         else
           {:error, _, _, _} = err ->
             err
-
-          {:error, {:invalid_array, _} = reason} ->
-            {:error, reason, skip, lines}
         end
 
       {:ok, {?\{, _, _, _}} ->
@@ -810,7 +807,6 @@ defmodule Toml.Decoder do
   defp array(lexer) do
     with {:ok, {?\[, skip, _, lines}} <- pop_skip(lexer, [:whitespace]),
          {:ok, elements} <- accumulate_array_elements(lexer),
-         {:valid?, true} <- {:valid?, valid_array?(elements)},
          {_, _, {:ok, {?\], _, _, _}}} <-
            {:close, {skip, lines}, pop_skip(lexer, [:whitespace, :newline, :comment])} do
       {:ok, elements}
@@ -828,34 +824,6 @@ defmodule Toml.Decoder do
         err
     end
   end
-
-  defp valid_array?([]),
-    do: true
-
-  defp valid_array?([h | t]),
-    do: valid_array?(t, typeof(h))
-
-  defp valid_array?([], _type),
-    do: true
-
-  defp valid_array?([h | t], type) do
-    if typeof(h) == type do
-      valid_array?(t, type)
-    else
-      {:error, {:invalid_array, {:expected_type, t, h}}}
-    end
-  end
-
-  defp typeof(v) when is_integer(v), do: :integer
-  defp typeof(v) when is_float(v), do: :float
-  defp typeof(v) when is_binary(v), do: :string
-  defp typeof(%Time{}), do: :time
-  defp typeof(%Date{}), do: :date
-  defp typeof(%DateTime{}), do: :datetime
-  defp typeof(%NaiveDateTime{}), do: :datetime
-  defp typeof(v) when is_list(v), do: :list
-  defp typeof(v) when is_map(v), do: :map
-  defp typeof(v) when is_boolean(v), do: :boolean
 
   defp inline_table(lexer) do
     with {:ok, {?\{, skip, _, lines}} <- pop_skip(lexer, [:whitespace]),
