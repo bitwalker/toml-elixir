@@ -1,3 +1,6 @@
+defmodule Distillery.Releases.Config.Provider do
+end
+
 defmodule Toml.Test.ProviderTest do
   use ExUnit.Case
 
@@ -34,6 +37,15 @@ defmodule Toml.Test.ProviderTest do
 
     assert "success!" = Application.get_env(:toml, :provider_test)
     assert {:ok, "success!"} = Toml.Provider.get([:toml, :provider_test])
+  end
+
+  test "deep merges to ensure existing config is preserved" do
+    file = Path.join([__DIR__, "fixtures", "provider.toml"])
+    put_all_env(toml: [nested: [deep: "success!"]])
+
+    Toml.Provider.init(path: file, keys: :atoms!)
+
+    assert [deep: "success!", foo: "bar"] = Application.get_env(:toml, :nested)
   end
 
   test "exit is triggered if path provided has invalid expansion" do
