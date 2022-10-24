@@ -2,8 +2,8 @@
   "a": [
     {
       "b": [
-        { "c" : { "d": {"type": "string", "value": "val0" } } },
-        { "c" : { "d": {"type": "string", "value": "val1" } } }
+        { "c" : { "d": "val0" } },
+        { "c" : { "d": "val1" } }
       ]
     }
   ]

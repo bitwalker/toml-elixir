@@ -1,12 +1,6 @@
 {
     "group": {
-        "answer": {"type": "integer", "value": "42"},
-        "more": {
-            "type": "array",
-            "value": [
-                {"type": "integer", "value": "42"},
-                {"type": "integer", "value": "42"}
-            ]
-        }
+        "answer": 42,
+        "more": [42, 42]
     }
 }

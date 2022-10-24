@@ -1,59 +1,21 @@
 {
   "the": {
     "hard": {
-      "another_test_string": {
-        "type": "string",
-        "value": " Same thing, but with a string #"
-      },
+      "another_test_string": " Same thing, but with a string #",
       "bit#": {
-        "multi_line_array": {
-          "type": "array",
-          "value": [
-            {
-              "type": "string",
-              "value": "]"
-            }
-          ]
-        },
-        "what?": {
-          "type": "string",
-          "value": "You don't think some user won't do that?"
-        }
+        "multi_line_array": ["]"],
+        "what?": "You don't think some user won't do that?"
       },
-      "harder_test_string": {
-        "type": "string",
-        "value": " And when \"'s are in the string, along with # \""
-      },
-      "test_array": {
-        "type": "array",
-        "value": [
-          {
-            "type": "string",
-            "value": " # "
-          },
-          {
-            "type": "string",
-            "value": "] "
-          }
-        ]
-      },
-      "test_array2": {
-        "type": "array",
-        "value": [
-          {
-            "type": "string",
-            "value": "Experiment #9 was a success"
-          },
-          {
-            "type": "string",
-            "value": "Test #11 ]proved that"
-          }
-        ]
-      }
+      "harder_test_string": " And when \"'s are in the string, along with # \"",
+      "test_array": [
+        " # ",
+        "] "
+      ],
+      "test_array2": [
+        "Experiment #9 was a success",
+        "Test #11 ]proved that"
+      ]
     },
-    "test_string": {
-      "type": "string",
-      "value": "You'll hate me after this - #"
-    }
+    "test_string": "You'll hate me after this - #"
   }
 }

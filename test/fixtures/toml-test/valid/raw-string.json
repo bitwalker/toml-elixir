@@ -1,30 +1,9 @@
 {
-    "backspace": {
-        "type": "string",
-        "value": "This string has a \\b backspace character."
-    },
-    "tab": {
-        "type": "string",
-        "value": "This string has a \\t tab character."
-    },
-    "newline": {
-        "type": "string",
-        "value": "This string has a \\n new line character."
-    },
-    "formfeed": {
-        "type": "string",
-        "value": "This string has a \\f form feed character."
-    },
-    "carriage": {
-        "type": "string",
-        "value": "This string has a \\r carriage return character."
-    },
-    "slash": {
-        "type": "string",
-        "value": "This string has a \\/ slash character."
-    },
-    "backslash": {
-        "type": "string",
-        "value": "This string has a \\\\ backslash character."
-    }
+    "backspace": "This string has a \\b backspace character.",
+    "tab": "This string has a \\t tab character.",
+    "newline": "This string has a \\n new line character.",
+    "formfeed": "This string has a \\f form feed character.",
+    "carriage": "This string has a \\r carriage return character.",
+    "slash": "This string has a \\/ slash character.",
+    "backslash": "This string has a \\\\ backslash character."
 }

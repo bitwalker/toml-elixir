@@ -1,9 +1,9 @@
 {
     "a": {
-        "better": {"type": "integer", "value": "43"},
+        "better": 43,
         "b": {
             "c": {
-                "answer": {"type": "integer", "value": "42"}
+                "answer": 42
             }
         }
     }

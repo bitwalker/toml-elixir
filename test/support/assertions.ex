@@ -21,8 +21,8 @@ defmodule Toml.Test.Assertions do
 
       {:ok, decoded} ->
         expected = JsonConverter.parse_json_file!(json)
-        typed = JsonConverter.to_typed_map(decoded)
-        assert_deep_equal(expected, typed)
+        # typed = JsonConverter.to_typed_map(decoded)
+        assert_deep_equal(expected, JsonConverter.to_json_map(decoded))
     end
   end
 

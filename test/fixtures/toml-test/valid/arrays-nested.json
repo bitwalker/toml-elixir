@@ -1,13 +1,3 @@
 {
-    "nest": {
-        "type": "array",
-        "value": [
-            {"type": "array", "value": [
-                {"type": "string", "value": "a"}
-            ]},
-            {"type": "array", "value": [
-                {"type": "string", "value": "b"}
-            ]}
-        ]
-    }
+    "nest": [["a"], ["b"]]
 }

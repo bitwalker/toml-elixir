@@ -1,14 +1,3 @@
 {
-  "arrays-and-ints": [
-    {
-      "type": "integer",
-      "value": "1"
-    },
-    [
-      {
-        "type": "string",
-        "value": "Arrays are not integers."
-      }
-    ]
-  ]
+  "arrays-and-ints": [1, ["Arrays are not integers."]]
 }

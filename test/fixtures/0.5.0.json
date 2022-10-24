@@ -2,297 +2,99 @@
   "array": {
     "ofTables": [
       {
-        "a": {
-          "type": "bool",
-          "value": "false"
-        }
+        "a": false
       },
       {
         "a": []
       },
       {
-        "a": {
-          "type": "bool",
-          "value": "true"
-        }
+        "a": true
       }
     ]
   },
-  "basicMultiline": {
-    "type": "string",
-    "value": "First line\n\tSecond line_\n\n       Still second line"
-  },
-  "binary": {
-    "type": "integer",
-    "value": "43"
-  },
-  "bool_array": {
-    "type": "array",
-    "value": [
-      {
-        "type": "bool",
-        "value": "true"
-      },
-      {
-        "type": "bool",
-        "value": "false"
-      },
-      {
-        "type": "bool",
-        "value": "true"
-      },
-      {
-        "type": "bool",
-        "value": "false"
-      }
-    ]
-  },
+  "basicMultiline": "First line\n\tSecond line_\n\n       Still second line",
+  "binary": 43,
+  "bool_array": [true, false, true, false],
   "dotted": {
-    "key": {
-      "type": "integer",
-      "value": "12"
-    },
-    "more_data": {
-      "type": "string",
-      "value": "some string"
-    },
+    "key": 12,
+    "more_data": "some string",
     "sub": {
       "subsub": {
         "key": {
-          "a": {
-            "type": "string",
-            "value": "b"
-          },
-          "c": {
-            "type": "string",
-            "value": "d"
-          }
+          "a": "b",
+          "c": "d"
         }
       }
     }
   },
-  "double": {
-    "type": "float",
-    "value": "1.2345678901"
-  },
+  "double": 1.2345678901,
   "fruit": [
     {
-      "name": {
-        "type": "string",
-        "value": "apple"
-      },
+      "name": "apple",
       "physical": {
-        "color": {
-          "type": "string",
-          "value": "red"
-        },
-        "shape": {
-          "type": "string",
-          "value": "round"
-        }
+        "color": "red",
+        "shape": "round"
       },
       "variety": [
         {
-          "name": {
-            "type": "string",
-            "value": "red delicious"
-          }
+          "name": "red delicious"
         },
         {
-          "name": {
-            "type": "string",
-            "value": "granny smith"
-          }
+          "name": "granny smith"
         }
       ]
     },
     {
-      "name": {
-        "type": "string",
-        "value": "banana"
-      },
+      "name": "banana",
       "variety": [
         {
-          "name": {
-            "type": "string",
-            "value": "plantain"
-          }
+          "name": "plantain"
         }
       ]
     }
   ],
-  "hexa": {
-    "type": "integer",
-    "value": "65535"
-  },
-  "infinity": {
-    "type": "integer",
-    "value": "Infinity"
-  },
+  "hexa": 65535,
+  "infinity": "Infinity",
   "inline_table": {
-    "data": {
-      "type": "integer",
-      "value": "0"
-    },
-    "id": {
-      "type": "integer",
-      "value": "1"
-    }
+    "data": 0,
+    "id": 1
   },
-  "int_array": {
-    "type": "array",
-    "value": [
-      {
-        "type": "integer",
-        "value": "0"
-      },
-      {
-        "type": "integer",
-        "value": "2"
-      }
-    ]
-  },
-  "integer": {
-    "type": "integer",
-    "value": "2"
-  },
-  "literalMultiline": {
-    "type": "string",
-    "value": "First line\nSecond line"
-  },
-  "long": {
-    "type": "integer",
-    "value": "1234567890000"
-  },
-  "m_inf": {
-    "type": "integer",
-    "value": "-Infinity"
-  },
-  "m_nan": {
-    "type": "integer",
-    "value": "-NaN"
-  },
-  "multilineArray": {
-    "type": "array",
-    "value": [
-      {
-        "type": "string",
-        "value": "string"
-      },
-      {
-        "type": "string",
-        "value": "string"
-      },
-      {
-        "type": "string",
-        "value": "multiline\n    string"
-      },
-      {
-        "type": "string",
-        "value": "multiline\n    string"
-      }
-    ]
-  },
-  "nan": {
-    "type": "integer",
-    "value": "NaN"
-  },
-  "nested_arrays": {
-    "type": "array",
-    "value": [
-      {
-        "type": "array",
-        "value": [
-          {
-            "type": "integer",
-            "value": "1"
-          }
-        ]
-      },
-      {
-        "type": "array",
-        "value": [
-          {
-            "type": "bool",
-            "value": "true"
-          },
-          {
-            "type": "bool",
-            "value": "false"
-          }
-        ]
-      },
-      {
-        "type": "array",
-        "value": [
-          {
-            "type": "string",
-            "value": "a"
-          },
-          {
-            "type": "string",
-            "value": "b"
-          }
-        ]
-      }
-    ]
-  },
-  "octal": {
-    "type": "integer",
-    "value": "511"
-  },
-  "p_inf": {
-    "type": "integer",
-    "value": "Infinity"
-  },
-  "p_nan": {
-    "type": "integer",
-    "value": "NaN"
-  },
-  "spaces": {
-    "type": "float",
-    "value": "10000999.010203"
-  },
-  "string": {
-    "type": "string",
-    "value": "value"
-  },
+  "int_array": [0, 2],
+  "integer": 2,
+  "literalMultiline": "First line\nSecond line",
+  "long": 1234567890000,
+  "m_inf": "-Infinity",
+  "m_nan": "-NaN",
+  "multilineArray": [
+    "string",
+    "string",
+    "multiline\n    string",
+    "multiline\n    string"
+  ],
+  "nan": "NaN",
+  "nested_arrays": [
+    [1],
+    [true, false],
+    ["a", "b"]
+  ],
+  "octal": 511,
+  "p_inf": "Infinity",
+  "p_nan": "NaN",
+  "spaces": 10000999.010203,
+  "string": "value",
   "table": {
-    "subDefinedFirst": {
-      "test": {
-        "type": "string",
-        "value": "this is valid TOML"
-      }
-    },
+    "key": "\"literal string\"\\n\\t",
     "subTable": {
-      "date": {
-        "type": "datetime",
-        "value": "2017-04-04"
+      "subDefinedFirst": {
+        "test": "this is valid TOML"
       },
-      "preciseTime": {
-        "type": "datetime",
-        "value": "16:41:20.00700"
-      },
-      "subkey": {
-        "type": "datetime",
-        "value": "2017-02-25T12:00:01.123456"
-      },
-      "subkey with space": {
-        "type": "datetime",
-        "value": "2017-02-25T12:00:01.123456"
-      },
-      "time": {
-        "type": "datetime",
-        "value": "16:41:20"
-      }
+      "date": "2017-04-04",
+      "preciseTime": "16:41:20.00700",
+      "subkey": "2017-02-25T12:00:01.123456",
+      "subkey with space": "2017-02-25T12:00:01.123456",
+      "time": "16:41:20"
     }
   },
-  "with_comments": {
-    "type": "string",
-    "value": "This value has two comments"
-  },
-  "without_comment": {
-    "type": "string",
-    "value": "This value has no comment"
-  }
+  "with_comments": "This value has two comments",
+  "without_comment": "This value has no comment"
 }

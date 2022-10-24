@@ -1,4 +1,4 @@
 {
-    "answer4": {"type": "string", "value": "\u03B4"},
-    "answer8": {"type": "string", "value": "\u03B4"}
+    "answer4": "\u03B4",
+    "answer8": "\u03B4"
 }
