@@ -44,7 +44,9 @@ defmodule Toml.Test.Assertions do
     bsort = b |> Map.to_list() |> Enum.sort_by(&to_sort_key/1)
 
     if map_size(a) == map_size(b) do
-      asort |> Enum.zip(bsort) |> Enum.all?(fn {{ak, av}, {bk, bv}} ->
+      asort
+      |> Enum.zip(bsort)
+      |> Enum.all?(fn {{ak, av}, {bk, bv}} ->
         if ak != bk do
           false
         else
@@ -63,7 +65,9 @@ defmodule Toml.Test.Assertions do
       asort = Enum.sort_by(a, &to_sort_key/1)
       bsort = Enum.sort_by(b, &to_sort_key/1)
 
-      asort |> Enum.zip(bsort) |> Enum.all?(fn {ai, bi} ->
+      asort
+      |> Enum.zip(bsort)
+      |> Enum.all?(fn {ai, bi} ->
         do_deep_equal(ai, bi)
       end)
     else

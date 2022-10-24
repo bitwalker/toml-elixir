@@ -34,9 +34,7 @@ defmodule Toml.Test.TomlTestTests do
             # Dump the TOML for better test failure context
             msg =
               err.message <>
-                "\nExpected the following TOML to be considered valid:\n\n---\n#{
-                  File.read!(@toml_test_path)
-                }\n---"
+                "\nExpected the following TOML to be considered valid:\n\n---\n#{File.read!(@toml_test_path)}\n---"
 
             reraise %ExUnit.AssertionError{err | message: msg}, __STACKTRACE__
         end
@@ -64,9 +62,7 @@ defmodule Toml.Test.TomlTestTests do
           err in [ExUnit.AssertionError] ->
             msg =
               err.message <>
-                "\n\nExpected the following TOML to be considered invalid:\n\n---\n#{
-                  File.read!(@toml_test_path)
-                }\n---"
+                "\n\nExpected the following TOML to be considered invalid:\n\n---\n#{File.read!(@toml_test_path)}\n---"
 
             reraise %ExUnit.AssertionError{err | message: msg}, __STACKTRACE__
         end
