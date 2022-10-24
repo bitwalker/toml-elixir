@@ -38,7 +38,7 @@ defmodule Toml.Test.TomlTestTests do
                   File.read!(@toml_test_path)
                 }\n---"
 
-            reraise %ExUnit.AssertionError{err | message: msg}, System.stacktrace()
+            reraise %ExUnit.AssertionError{err | message: msg}, __STACKTRACE__
         end
       end
 
@@ -68,7 +68,7 @@ defmodule Toml.Test.TomlTestTests do
                   File.read!(@toml_test_path)
                 }\n---"
 
-            reraise %ExUnit.AssertionError{err | message: msg}, System.stacktrace()
+            reraise %ExUnit.AssertionError{err | message: msg}, __STACKTRACE__
         end
       end
 

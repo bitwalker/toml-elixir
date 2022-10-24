@@ -749,7 +749,7 @@ defmodule Toml.Decoder do
         Lexer.advance(lexer)
         value(lexer)
 
-      {:ok, {?\[, skip, _, lines}} ->
+      {:ok, {?\[, _skip, _, _lines}} ->
         # Need to embellish some errors with line/col
         with {:ok, _} = ok <- array(lexer) do
           ok
@@ -824,17 +824,6 @@ defmodule Toml.Decoder do
         err
     end
   end
-
-  defp typeof(v) when is_integer(v), do: :integer
-  defp typeof(v) when is_float(v), do: :float
-  defp typeof(v) when is_binary(v), do: :string
-  defp typeof(%Time{}), do: :time
-  defp typeof(%Date{}), do: :date
-  defp typeof(%DateTime{}), do: :datetime
-  defp typeof(%NaiveDateTime{}), do: :datetime
-  defp typeof(v) when is_list(v), do: :list
-  defp typeof(v) when is_map(v), do: :map
-  defp typeof(v) when is_boolean(v), do: :boolean
 
   defp inline_table(lexer) do
     with {:ok, {?\{, skip, _, lines}} <- pop_skip(lexer, [:whitespace]),
