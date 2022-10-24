@@ -1,4 +1,6 @@
 defmodule Toml do
+  @external_resource "README.md"
+
   @moduledoc File.read!(Path.join([__DIR__, "..", "README.md"]))
 
   @type key :: binary | atom | term
@@ -20,12 +22,10 @@ defmodule Toml do
 
     * `:filename` - pass a filename to use in error messages
     * `:keys` - controls how keys in the document are decoded. Possible values are:
-
       * `:strings` (default) - decodes keys as strings
       * `:atoms` - converts keys to atoms with `String.to_atom/1`
       * `:atoms!` - converts keys to atoms with `String.to_existing_atom/1`
       * `(key -> term)` - converts keys using the provided function
-      
     * `:transforms` - a list of custom transformations to apply to decoded TOML values,
       see `c:Toml.Transform.transform/2` for details.
       

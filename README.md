@@ -1,12 +1,15 @@
 # TOML for Elixir
 
-[![Master](https://travis-ci.com/bitwalker/toml-elixir.svg?branch=master)](https://travis-ci.com/bitwalker/toml-elixir)
-[![Hex.pm Version](http://img.shields.io/hexpm/v/toml.svg?style=flat)](https://hex.pm/packages/toml)
+[![Main](https://github.com/bitwalker/toml-elixir/workflows/elixir/badge.svg?branch=main)](https://github.com/bitwalker/toml-elixir/actions?query=workflow%3A%22elixir%22+branch%3Amain)
+[![Hex.pm Version](https://img.shields.io/hexpm/v/toml.svg?style=flat)](https://hex.pm/packages/toml)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg?style=flat)](https://hexdocs.pm/toml)
+[![Total Download](https://img.shields.io/hexpm/dt/toml.svg?style=flat)](https://hex.pm/packages/toml)
+[![Last Updated](https://img.shields.io/github/last-commit/bitwalker/toml-elixir.svg?style=flat)](https://github.com/bitwalker/toml-elixir/commits/main)
 
-This is a TOML library for Elixir projects. It is compliant with version 0.5.0 of the
-[official TOML specification](https://github.com/toml-lang/toml). You can find a
-brief overview of the feature set below, but you are encouraged to read the full
-spec at the link above (it is short and easy to read!).
+This is a TOML library for Elixir projects. 
+
+It is compliant with version 1.0 of the [official TOML specification](https://github.com/toml-lang/toml). You can find a
+brief overview of the feature set below, but you are encouraged to read the full spec at the link above (it is short and easy to read!).
 
 ## Features
 
@@ -50,7 +53,7 @@ This library is available on Hex as `:toml`, and can be added to your deps like 
 ```elixir
 def deps do
   [
-    {:toml, "~> 0.6.1"}
+    {:toml, "~> 0.7"}
   ]
 end
 ```
@@ -180,7 +183,7 @@ expected '\n', but got 'b' in nofile on line 2:
 Support for extending value conversions is provided by the `Toml.Transform`
 behavior. An example is shown below:
 
-Given the follwing TOML document:
+Given the following TOML document:
 
 ``` toml
 [servers.alpha]

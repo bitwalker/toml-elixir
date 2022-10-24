@@ -61,16 +61,21 @@ defmodule Toml.MixProject do
     [
       files: ["lib", "mix.exs", "README.md", "LICENSE"],
       maintainers: ["Paul Schoenfelder"],
-      licenses: ["Apache 2.0"],
+      licenses: ["Apache-2.0"],
       links: %{"GitHub" => @source_url}
     ]
   end
 
   defp docs do
     [
-      main: "Toml",
+      main: "readme",
       source_url: @source_url,
-      source_ref: @version
+      source_ref: @version,
+      extras: [
+        LICENSE: [title: "License"],
+        "README.md": [title: "Overview"]
+      ],
+      formatters: ["html"]
     ]
   end
 
