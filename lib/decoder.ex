@@ -261,7 +261,7 @@ defmodule Toml.Decoder do
     end
   end
 
-  defp handle_token(lexer, original, doc, type, skip, _data, lines) when type in '-_' do
+  defp handle_token(lexer, original, doc, type, skip, _data, lines) when type in ~c"-_" do
     handle_token(lexer, original, doc, :string, skip, <<type::utf8>>, lines)
   end
 
@@ -368,7 +368,7 @@ defmodule Toml.Decoder do
 
   defp maybe_integer(lexer) do
     case pop_skip(lexer, [:whitespace]) do
-      {:ok, {type, _skip, _data, _lines}} when type in '-+' ->
+      {:ok, {type, _skip, _data, _lines}} when type in ~c"-+" ->
         # Can be integer, float
         case Lexer.peek(lexer) do
           {:error, _, _, _} = err ->
@@ -416,7 +416,7 @@ defmodule Toml.Decoder do
             Lexer.advance(lexer)
             float(lexer, ?., [?., d])
 
-          {:ok, {:alpha, _, <<c::utf8>>, _}} when c in 'eE' ->
+          {:ok, {:alpha, _, <<c::utf8>>, _}} when c in ~c"eE" ->
             # Float
             Lexer.advance(lexer)
             float(lexer, ?e, [?e, ?0, ?., d])
@@ -471,7 +471,7 @@ defmodule Toml.Decoder do
         # Float
         float(lexer, ?., [?. | parts])
 
-      {:ok, {:alpha, _, <<c::utf8>>, _}} when c in 'eE' ->
+      {:ok, {:alpha, _, <<c::utf8>>, _}} when c in ~c"eE" ->
         # Float, need to add .0 before e, or String.to_float fails
         float(lexer, ?e, [?e, ?0, ?. | parts])
 
@@ -511,15 +511,15 @@ defmodule Toml.Decoder do
         # Always an error at this point, as either duplicate or after E
         {:error, {:invalid_float, {?., 0}}, skip, lines}
 
-      {:ok, {sign, _, _, _}} when sign in '-+' and last == ?e ->
+      {:ok, {sign, _, _, _}} when sign in ~c"-+" and last == ?e ->
         # +/- are allowed after e/E
         float(lexer, signal, [sign | parts])
 
-      {:ok, {:alpha, _, <<c::utf8>>, _}} when c in 'eE' and signal == ?. ->
+      {:ok, {:alpha, _, <<c::utf8>>, _}} when c in ~c"eE" and signal == ?. ->
         # Valid if after a dot
         float(lexer, ?e, [?e | parts])
 
-      {:ok, {?_, skip, _, lines}} when last not in '_e.' ->
+      {:ok, {?_, skip, _, lines}} when last not in ~c"_e." ->
         # Valid only when surrounded by digits
         with {:ok, {:digits, _, d, _}} <- Lexer.peek(lexer),
              _ = Lexer.advance(lexer) do
@@ -535,11 +535,11 @@ defmodule Toml.Decoder do
       {:ok, {:digits, _, d, _}} ->
         float(lexer, signal, [d | parts])
 
-      {:ok, {type, skip, data, lines}} when last in 'e.' ->
+      {:ok, {type, skip, data, lines}} when last in ~c"e." ->
         # Incomplete float
         {:error, {:invalid_float, {type, data}}, skip, lines}
 
-      {:ok, {_type, skip, _data, lines} = token} when last not in '_e.' ->
+      {:ok, {_type, skip, _data, lines} = token} when last not in ~c"_e." ->
         # Done
         Lexer.push(lexer, token)
 
@@ -679,7 +679,7 @@ defmodule Toml.Decoder do
         {:ok, {:alpha, _, "Z", _}} ->
           DateTime.from_naive(naive, "Etc/UTC")
 
-        {:ok, {sign, _, _, _}} when sign in '-+' ->
+        {:ok, {sign, _, _, _}} when sign in ~c"-+" ->
           # We have an offset
           with {:ok, {:digits, _, <<_::utf8, _::utf8>> = hh, _}} <- Lexer.pop(lexer),
                {:ok, {?:, _, _, _}} <- Lexer.pop(lexer),
@@ -793,7 +793,7 @@ defmodule Toml.Decoder do
         Lexer.advance(lexer)
         {:ok, v}
 
-      {:ok, {sign, _, _, _}} when sign in '-+' ->
+      {:ok, {sign, _, _, _}} when sign in ~c"-+" ->
         maybe_integer(lexer)
 
       {:ok, {:digits, _, _, _}} ->
@@ -913,7 +913,7 @@ defmodule Toml.Decoder do
         {:ok, {type, skip, s, lines}} when type in [:digits, :alpha, :string] ->
           {key(lexer, s, []), skip, lines}
 
-        {:ok, {type, skip, _, lines}} when type in '-_' ->
+        {:ok, {type, skip, _, lines}} when type in ~c"-_" ->
           {key(lexer, <<type::utf8>>, []), skip, lines}
 
         {:ok, {type, skip, data, lines} = token} ->
@@ -951,7 +951,7 @@ defmodule Toml.Decoder do
               {:ok, {type, _, _, _}} when type in [:digits, :alpha, :string] ->
                 key(lexer, "", [word | acc])
 
-              {:ok, {type, _, _, _}} when type in '-_' ->
+              {:ok, {type, _, _, _}} when type in ~c"-_" ->
                 key(lexer, "", [word | acc])
 
               {:ok, {type, skip, data, lines}} ->
@@ -966,7 +966,7 @@ defmodule Toml.Decoder do
         Lexer.advance(lexer)
         key(lexer, word <> s, acc)
 
-      {:ok, {type, _, _, _}} when type in '-_' ->
+      {:ok, {type, _, _, _}} when type in ~c"-_" ->
         Lexer.advance(lexer)
         key(lexer, word <> iodata_to_str([type]), acc)
 
@@ -980,7 +980,7 @@ defmodule Toml.Decoder do
           {:ok, {type, _, _, _}} when type in [:digits, :alpha, :string] ->
             key(lexer, "", [word | acc])
 
-          {:ok, {type, _, _, _}} when type in '-_' ->
+          {:ok, {type, _, _, _}} when type in ~c"-_" ->
             key(lexer, "", [word | acc])
 
           {:ok, {type, skip, data, lines}} ->

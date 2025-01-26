@@ -23,13 +23,13 @@ defmodule Toml.CLI do
     end
 
     # Validate required opts
-    unless opts[:format] && (opts[:file] || opts[:stdin]) do
+    if !(opts[:format] && (opts[:file] || opts[:stdin])) do
       warn!("You must provide both --format, and either --file or --stdin")
       help(%__MODULE__{config | argv: ["convert"]})
     end
 
     # Validate format
-    unless opts[:format] == "json" do
+    if opts[:format] != "json" do
       fail!("Invalid conversion format '#{opts[:format]}'. Supported formats are: 'json'.")
     end
 
@@ -57,7 +57,7 @@ defmodule Toml.CLI do
     end
 
     # Validate required opts
-    unless opts[:file] || opts[:stdin] do
+    if !(opts[:file] || opts[:stdin]) do
       warn!("You must provide either --file or --stdin")
       help(%__MODULE__{config | argv: ["validate"]})
     end
