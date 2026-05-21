@@ -195,6 +195,11 @@ defmodule Toml.CLI do
     do: Toml.decode_stream(stream)
 
   # Write an error to stderr and halt non-zero
+  defp fail!(msg) when is_binary(msg) do
+    IO.puts(:standard_error, msg)
+    System.halt(1)
+  end
+
   defp fail!({:error, reason}) when is_binary(reason) do
     IO.puts(:standard_error, reason)
     System.halt(1)

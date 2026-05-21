@@ -44,11 +44,13 @@ defmodule Toml.MixProject do
   defp deps do
     [
       {:ex_doc, ">= 0.0.0", only: [:docs]},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:erlex, "~> 0.2.8", only: [:dev, :test], runtime: false, override: true},
       {:benchee, "~> 1.0", only: [:bench]},
       {:benchee_html, "~> 1.0", only: [:bench]},
       {:jason, "~> 1.0", only: [:test, :bench]},
-      {:excoveralls, "~> 0.9", only: [:test]}
+      {:excoveralls, "~> 0.18", only: [:test]},
+      {:castore, "~> 1.0", only: [:test]}
       # For benchmarking, though none of these libraries work at this point
       # {:tomlex, "~> 0.0.5", only: [:bench]},
       # {:toml_elixir, "~> 2.0.1", only: [:bench]},
@@ -109,7 +111,6 @@ defmodule Toml.MixProject do
 
   defp dialyzer do
     [
-      ignore_warnings: "dialyzer.ignore",
       flags: [:error_handling, :underspecs],
       plt_core_path: System.get_env("PLT_PATH") || System.get_env("MIX_HOME")
     ]

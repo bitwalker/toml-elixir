@@ -42,7 +42,7 @@ defmodule Toml.Test.TomlTestTests do
 
     # And eval it in the module environment, resulting in a test as if it was defined by hand
     # rather than in the body of a loop
-    Module.eval_quoted(%Macro.Env{__ENV__ | line: line}, quoted)
+    Code.eval_quoted(quoted, [], %Macro.Env{__ENV__ | line: line})
   end
 
   # The only difference for the invalid tests is that we additionally offset it by the number of valid tests
@@ -68,6 +68,6 @@ defmodule Toml.Test.TomlTestTests do
         end
       end
 
-    Module.eval_quoted(%Macro.Env{__ENV__ | line: line}, quoted)
+    Code.eval_quoted(quoted, [], %Macro.Env{__ENV__ | line: line})
   end
 end
