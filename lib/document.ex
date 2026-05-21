@@ -134,6 +134,26 @@ defmodule Toml.Document do
     |> (&transform.(key, &1)).()
   end
 
+  defp to_map3(key, {:array, array}, keyfun, nil) do
+    to_map3(key, array, keyfun, nil)
+  end
+
+  defp to_map3(key, {:array, array}, keyfun, transform) do
+    for v <- array do
+      to_map3(key, v, keyfun, transform)
+    end
+    |> (&transform.(key, &1)).()
+  end
+
+  defp to_map3(_key, {:inline_table, m}, keyfun, nil) do
+    to_map2(m, keyfun, nil)
+  end
+
+  defp to_map3(key, {:inline_table, m}, keyfun, transform) do
+    to_map2(m, keyfun, transform)
+    |> (&transform.(key, &1)).()
+  end
+
   defp to_map3(_key, v, keyfun, nil) when is_map(v) do
     to_map2(v, keyfun, nil)
   end

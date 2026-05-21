@@ -809,7 +809,7 @@ defmodule Toml.Decoder do
          {:ok, elements} <- accumulate_array_elements(lexer),
          {_, _, {:ok, {?\], _, _, _}}} <-
            {:close, {skip, lines}, pop_skip(lexer, [:whitespace, :newline, :comment])} do
-      {:ok, elements}
+      {:ok, {:array, elements}}
     else
       {:error, _, _, _} = err ->
         err
@@ -829,7 +829,7 @@ defmodule Toml.Decoder do
     with {:ok, {?\{, skip, _, lines}} <- pop_skip(lexer, [:whitespace]),
          {:ok, elements} <- accumulate_table_elements(lexer),
          {_, _, {:ok, {?\}, _, _, _}}} <- {:close, {skip, lines}, pop_skip(lexer, [:whitespace])} do
-      {:ok, elements}
+      {:ok, {:inline_table, elements}}
     else
       {:error, _, _, _} = err ->
         err

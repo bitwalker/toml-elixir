@@ -38,7 +38,7 @@ defmodule Toml.Test.TransformTest do
 
   defmodule ServerTransform do
     def transform(:servers, v) when is_map(v) do
-      for {name, s} <- v do
+      for {name, s} <- Enum.sort(v) do
         case s do
           %{ip: {_, _, _, _}} ->
             struct(Toml.Test.TransformTest.Server, Map.put(s, :name, name))
@@ -80,6 +80,13 @@ defmodule Toml.Test.TransformTest do
     [[servers.beta.ports]]
     type = "UDP"
     number = 8083
+
+    [servers.gamma]
+    ip = "192.168.1.3"
+    ports = [
+      {type = "TCP", number = 8888},
+      {type = "TCP", number = 9000}
+    ]
     """
 
     transforms = [
@@ -92,7 +99,8 @@ defmodule Toml.Test.TransformTest do
     assert {:ok, result} = Toml.decode(input, keys: :atoms, transforms: transforms)
     assert is_list(result[:servers])
     assert [%Server{name: :alpha, ip: {192, 168, 1, 1}} | _] = result[:servers]
-    alpha = result[:servers] |> List.first()
+    [alpha, _beta, gamma] = result[:servers]
     assert [8080, 8081] = alpha.ports
+    assert [8888, 9000] = gamma.ports
   end
 end
